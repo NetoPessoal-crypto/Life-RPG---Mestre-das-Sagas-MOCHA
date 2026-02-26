@@ -1,19 +1,21 @@
 import { ReactNode } from 'react';
 import BottomNav from './BottomNav';
-import StatusBars from './StatusBars';
 import { useGame } from '@/react-app/context/GameContext';
 
 interface AppShellProps {
   children: ReactNode;
-  showStatusBars?: boolean;
+  showStatusBars?: boolean; // Podemos manter ou remover se a Dashboard já tiver as barras
 }
 
-export default function AppShell({ children, showStatusBars = true }: AppShellProps) {
-  const { isExhausted } = useGame();
+export default function AppShell({ children }: AppShellProps) {
+  const { state, isExhausted } = useGame();
+
+  // Cálculo para o efeito de dano (fica mais forte quanto menos HP você tem)
+  const isCritical = state.hp < 30;
 
   return (
-    <div className={`min-h-screen bg-background ${isExhausted ? 'exhausted' : ''}`}>
-      {/* Background texture */}
+    <div className={`min-h-screen bg-black text-white selection:bg-primary/30`}>
+      {/* TEXTURA DE FUNDO RPG */}
       <div 
         className="fixed inset-0 opacity-5 pointer-events-none"
         style={{
@@ -21,20 +23,34 @@ export default function AppShell({ children, showStatusBars = true }: AppShellPr
         }}
       />
 
-      {showStatusBars && <StatusBars />}
-      
-      <main className="max-w-[450px] mx-auto pb-20 relative">
+      {/* 🔴 CAMADA DE DANO (A TELA AVERMELHADA QUE VOCÊ PEDIU) */}
+      {isCritical && (
+        <div className="fixed inset-0 pointer-events-none z-[9999] animate-pulse-fast shadow-[inset_0_0_60px_rgba(220,38,38,0.6)] border-[4px] border-red-600/20" />
+      )}
+
+      {/* Conteúdo Principal */}
+      <main className="max-w-[450px] mx-auto pb-24 relative z-10">
         {children}
       </main>
       
       <BottomNav />
 
-      {/* Exhaustion overlay */}
+      {/* AVISO DE EXAUSTÃO NO TOPO */}
       {isExhausted && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-destructive/90 text-destructive-foreground px-4 py-2 rounded-lg font-pixel text-xs z-50 animate-pulse">
-          ⚠️ EXAUSTÃO! HP Baixo
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-full font-pixel text-[8px] z-[10000] shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-bounce">
+          ⚠️ STATUS: EXAUSTO
         </div>
       )}
+
+      <style>{`
+        @keyframes pulse-fast {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.8; }
+        }
+        .animate-pulse-fast {
+          animation: pulse-fast 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 }
