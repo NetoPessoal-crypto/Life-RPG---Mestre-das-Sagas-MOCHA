@@ -1,61 +1,76 @@
 import AppShell from '@/react-app/components/AppShell';
-import { useGame } from '@/react-app/context/GameContext';
-import { Sword, Brain, Map, Heart, Flame } from 'lucide-react';
+import { useGame, getPlayerTitle } from '@/react-app/context/GameContext';
+import { User, Shield, Zap } from 'lucide-react';
 
 export default function ProfilePage() {
   const { state } = useGame();
+  
+  const attrTop = ['CON', 'STR', 'DEX', 'INT'] as const;
+  const attrBottom = ['WIS', 'EXPL', 'GOLD'] as const;
 
-  const stats = [
-    { label: 'STR', val: state.attributes.STR, i: 0 },
-    { label: 'INT', val: state.attributes.INT, i: 1 },
-    { label: 'EXPL', val: state.attributes.EXPL, i: 2 },
-    { label: 'CON', val: state.attributes.CON, i: 3 },
-    { label: 'WIS', val: state.attributes.WIS, i: 4 },
-  ];
-
-  const getCoords = (val: number, i: number) => {
-    const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-    const dist = (Math.min(val, 100) / 100) * 70; 
-    return { x: 100 + dist * Math.cos(angle), y: 100 + dist * Math.sin(angle) };
-  };
-
-  const radarPoints = stats.map((s, i) => {
-    const c = getCoords(s.val, i);
-    return `${c.x},${c.y}`;
-  }).join(' ');
+  const hpPercent = (state.hp / state.maxHP) * 100;
+  const xpPercent = (state.totalXP % 100);
 
   return (
     <AppShell>
-      <div className="p-4 space-y-8 text-[#d4a853]">
-        <h2 className="font-pixel text-[10px] text-center border-b border-[#d4a853]/20 pb-2">FICHA DO PERSONAGEM</h2>
-        
-        {/* GRÁFICO DE TEIA */}
-        <div className="bg-black/40 border-2 border-[#d4a853]/10 rounded-lg p-4 flex flex-col items-center">
-           <svg width="200" height="200" viewBox="0 0 200 200">
-             {[0.2, 0.4, 0.6, 0.8, 1].map(t => (
-               <polygon key={t} points={stats.map((_, i) => { const c = getCoords(100*t, i); return `${c.x},${c.y}`; }).join(' ')} fill="none" stroke="rgba(212,168,83,0.1)" />
-             ))}
-             <polygon points={radarPoints} fill="rgba(212,168,83,0.3)" stroke="#d4a853" strokeWidth="2" />
-           </svg>
-           <div className="flex gap-4 mt-4 opacity-50">
-             <Sword size={14}/> <Brain size={14}/> <Map size={14}/> <Heart size={14}/> <Flame size={14}/>
+      <div className="p-4 space-y-8">
+        {/* Personagem Status Card */}
+        <section className="bg-card border border-primary/20 rounded-lg p-6 flex flex-col items-center gap-4">
+           <div className="w-20 h-20 rounded-full border-4 border-primary/40 bg-black flex items-center justify-center shadow-lg">
+              <User size={40} className="text-primary opacity-80" />
            </div>
-        </div>
+           <div className="text-center">
+              <h2 className="font-pixel text-lg text-white uppercase">{state.playerName}</h2>
+              <p className="font-pixel text-[8px] text-primary tracking-widest">{getPlayerTitle(state.level)}</p>
+           </div>
+           
+           <div className="w-full space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between font-pixel text-[7px] text-red-500">
+                  <span>HP</span>
+                  <span>{state.hp}%</span>
+                </div>
+                <div className="h-3 w-full bg-black border border-red-900/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" style={{ width: `${hpPercent}%` }} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between font-pixel text-[7px] text-blue-400">
+                  <span>XP</span>
+                  <span>LV {state.level}</span>
+                </div>
+                <div className="h-2 w-full bg-black border border-blue-900/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${xpPercent}%` }} />
+                </div>
+              </div>
+           </div>
+        </section>
 
-        {/* LISTA DE ATRIBUTOS */}
-        <div className="space-y-4">
-          {stats.map(s => (
-            <div key={s.label} className="space-y-1">
-              <div className="flex justify-between font-pixel text-[8px]">
-                <span>{s.label}</span>
-                <span>{s.val}</span>
+        {/* Attributes Grid (Mocha Style: 4 e 3) */}
+        <section>
+          <h2 className="font-pixel text-xs text-muted-foreground mb-4 flex items-center gap-2">
+            <span className="w-8 h-px bg-primary/30" /> ATRIBUTOS <span className="flex-1 h-px bg-primary/30" />
+          </h2>
+          
+          <div className="grid grid-cols-4 gap-2 mb-2">
+            {attrTop.map(attr => (
+              <div key={attr} className="bg-card border border-primary/10 p-2 rounded text-center">
+                <p className="text-[6px] text-muted-foreground font-pixel">{attr}</p>
+                <p className="text-xs font-pixel text-primary">{state.attributes[attr]}</p>
               </div>
-              <div className="h-2 w-full bg-black border border-[#d4a853]/20">
-                <div className="h-full bg-[#d4a853]/60 shadow-[0_0_5px_#d4a853]" style={{ width: `${s.val}%` }} />
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {attrBottom.map(attr => (
+              <div key={attr} className="bg-card border border-primary/10 p-2 rounded text-center">
+                <p className="text-[6px] text-muted-foreground font-pixel">{attr}</p>
+                <p className="text-xs font-pixel text-primary">
+                  {attr === 'GOLD' ? `$${state.attributes[attr]}` : state.attributes[attr]}
+                </p>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
       </div>
     </AppShell>
   );
