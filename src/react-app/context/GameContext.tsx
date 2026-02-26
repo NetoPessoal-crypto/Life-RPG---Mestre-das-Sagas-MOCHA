@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// --- INTERFACES ---
+
 export interface Quest {
   id: string;
   title: string;
@@ -49,6 +51,10 @@ export interface GameState {
   lastCheckDate: string;
 }
 
+// --- CONFIGURAÇÕES INICIAIS ---
+
+const STORAGE_KEY = 'life-rpg-state';
+
 const defaultState: GameState = {
   playerName: 'Aventureiro',
   level: 1,
@@ -56,18 +62,78 @@ const defaultState: GameState = {
   hp: 100,
   maxHP: 100,
   attributes: {
-    CON: 10,
-    STR: 10,
-    DEX: 10,
-    INT: 10,
-    WIS: 10,
-    EXPL: 10,
-    GOLD: 0
+    CON: 10, STR: 10, DEX: 10, INT: 10, WIS: 10, EXPL: 10, GOLD: 0
   },
   sagas: [],
   mapPoints: [],
   lastCheckDate: new Date().toISOString().split('T')[0]
 };
+
+// --- FUNÇÕES AUXILIARES ---
+
+function calculateLevel(totalXP: number): number {
+  return Math.floor(totalXP / 100) + 1;
+}
+
+function getTodayString(): string {
+  return new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+}
+
+function parseQuestsFromText(text: string, sagaId: string): Quest[] {
+  const quests: Quest[] = [];
+  const lines = text.split(/[;\n]/).filter(line => line.trim());
+  
+  const dayMap: Record<string, string> = {
+    'segunda': 'segunda-feira', 'terça': 'terça-feira', 'quarta': 'quarta-feira',
+    'quinta': 'quinta-feira', 'sexta': 'sexta-feira', 'sábado': 'sábado', 'domingo': 'domingo'
+  };
+  
+  const attributeKeywords: Record<string, AttributeKey> = {
+    'treino': 'STR', 'academia': 'STR', 'musculação': 'STR', 'força': 'STR',
+    'corrida': 'DEX', 'cardio': 'DEX', 'caminhada': 'DEX', 'bike': 'DEX',
+    'estudo': 'INT', 'estudar': 'INT', 'leitura': 'INT', 'ler': 'INT', 'curso': 'INT', 'react': 'INT', 'javascript': 'INT',
+    'meditação': 'WIS', 'meditar': 'WIS', 'terapia': 'WIS', 'reflexão': 'WIS',
+    'sono': 'CON', 'dormir': 'CON', 'saúde': 'CON', 'médico': 'CON', 'água': 'CON', 'dieta': 'CON',
+    'passeio': 'EXPL', 'explorar': 'EXPL', 'viagem': 'EXPL', 'lazer': 'EXPL',
+    'dinheiro': 'GOLD', 'trabalho': 'GOLD', 'freelance': 'GOLD', 'renda': 'GOLD', 'venda': 'GOLD'
+  };
+  
+  lines.forEach((line, index) => {
+    const trimmed = line.trim().toLowerCase();
+    let day = 'todos';
+    let title = line.trim();
+    
+    for (const [key, value] of Object.entries(dayMap)) {
+      if (trimmed.includes(key)) {
+        day = value;
+        title = line.includes(':') ? line.split(':')[1].trim() : line.replace(new RegExp(key, 'i'), '').trim();
+        break;
+      }
+    }
+    
+    let attribute: AttributeKey = 'INT';
+    for (const [keyword, attr] of Object.entries(attributeKeywords)) {
+      if (trimmed.includes(keyword)) {
+        attribute = attr;
+        break;
+      }
+    }
+    
+    if (title) {
+      quests.push({
+        id: `${sagaId}-${index}-${Date.now()}`,
+        title: title.toUpperCase(),
+        attribute,
+        completed: false,
+        day
+      });
+    }
+  });
+  
+  return quests;
+}
+
+// --- CONTEXTO ---
 
 interface GameContextType {
   state: GameState;
@@ -84,101 +150,6 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'life-rpg-state';
-
-function calculateLevel(totalXP: number): number {
-  return Math.floor(totalXP / 100) + 1;
-}
-
-function getTodayString(): string {
-  return new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
-}
-
-function parseQuestsFromText(text: string, sagaId: string): Quest[] {
-  const quests: Quest[] = [];
-  const lines = text.split(/[;\n]/).filter(line => line.trim());
-  
-  const dayMap: Record<string, string> = {
-    'segunda': 'segunda-feira',
-    'terça': 'terça-feira',
-    'terca': 'terça-feira',
-    'quarta': 'quarta-feira',
-    'quinta': 'quinta-feira',
-    'sexta': 'sexta-feira',
-    'sábado': 'sábado',
-    'sabado': 'sábado',
-    'domingo': 'domingo'
-  };
-  
-  const attributeKeywords: Record<string, AttributeKey> = {
-    'treino': 'STR',
-    'academia': 'STR',
-    'musculação': 'STR',
-    'força': 'STR',
-    'corrida': 'DEX',
-    'cardio': 'DEX',
-    'correr': 'DEX',
-    'bike': 'DEX',
-    'estudo': 'INT',
-    'estudar': 'INT',
-    'leitura': 'INT',
-    'ler': 'INT',
-    'curso': 'INT',
-    'meditação': 'WIS',
-    'meditar': 'WIS',
-    'terapia': 'WIS',
-    'reflexão': 'WIS',
-    'sono': 'CON',
-    'dormir': 'CON',
-    'saúde': 'CON',
-    'médico': 'CON',
-    'passeio': 'EXPL',
-    'explorar': 'EXPL',
-    'viagem': 'EXPL',
-    'lazer': 'EXPL',
-    'dinheiro': 'GOLD',
-    'trabalho': 'GOLD',
-    'freelance': 'GOLD',
-    'renda': 'GOLD'
-  };
-  
-  lines.forEach((line, index) => {
-    const trimmed = line.trim().toLowerCase();
-    let day = 'todos';
-    let title = line.trim();
-    
-    // Check for day prefix
-    for (const [key, value] of Object.entries(dayMap)) {
-      if (trimmed.startsWith(key)) {
-        day = value;
-        title = line.substring(line.indexOf(':') + 1).trim() || line.substring(key.length).trim();
-        break;
-      }
-    }
-    
-    // Detect attribute
-    let attribute: AttributeKey = 'INT';
-    for (const [keyword, attr] of Object.entries(attributeKeywords)) {
-      if (trimmed.includes(keyword)) {
-        attribute = attr;
-        break;
-      }
-    }
-    
-    if (title) {
-      quests.push({
-        id: `${sagaId}-${index}-${Date.now()}`,
-        title,
-        attribute,
-        completed: false,
-        day
-      });
-    }
-  });
-  
-  return quests;
-}
-
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GameState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -192,32 +163,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return defaultState;
   });
 
-  // Save to localStorage whenever state changes
+  // Salva no localStorage sempre que o estado mudar
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
-  // Check for day change and apply debuffs
+  // Lógica de virada de dia e penalidade (Debuff)
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     if (state.lastCheckDate !== today) {
-      // Check if CON and EXPL quests were completed yesterday
       const todayStr = getTodayString();
-      const hadCONQuest = state.sagas.some(s => 
+      
+      // Verifica se quests essenciais ficaram pendentes
+      const missedCON = state.sagas.some(s => 
         s.quests.some(q => (q.day === todayStr || q.day === 'todos') && q.attribute === 'CON' && !q.completed)
-      );
-      const hadEXPLQuest = state.sagas.some(s => 
-        s.quests.some(q => (q.day === todayStr || q.day === 'todos') && q.attribute === 'EXPL' && !q.completed)
       );
       
       let damage = 0;
-      if (hadCONQuest) damage += 10;
-      if (hadEXPLQuest) damage += 10;
+      if (missedCON) damage += 15; // Falta de sono/saúde tira mais HP
       
       setState(prev => ({
         ...prev,
         lastCheckDate: today,
         hp: Math.max(0, prev.hp - damage),
+        // Reseta as tarefas para o novo dia
         sagas: prev.sagas.map(saga => ({
           ...saga,
           quests: saga.quests.map(q => ({ ...q, completed: false }))
@@ -277,20 +246,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const addMapPoint = (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => {
-    setState(prev => ({
-      ...prev,
-      attributes: {
-        ...prev.attributes,
-        EXPL: prev.attributes.EXPL + 10
-      },
-      totalXP: prev.totalXP + 10,
-      level: calculateLevel(prev.totalXP + 10),
-      mapPoints: [...prev.mapPoints, {
-        ...point,
-        id: `point-${Date.now()}`,
-        discoveredAt: new Date().toISOString()
-      }]
-    }));
+    setState(prev => {
+      const newTotalXP = prev.totalXP + 15;
+      return {
+        ...prev,
+        attributes: {
+          ...prev.attributes,
+          EXPL: prev.attributes.EXPL + 10
+        },
+        totalXP: newTotalXP,
+        level: calculateLevel(newTotalXP),
+        mapPoints: [...prev.mapPoints, {
+          ...point,
+          id: `point-${Date.now()}`,
+          discoveredAt: new Date().toISOString()
+        }]
+      };
+    });
   };
 
   const updatePlayerName = (name: string) => {
