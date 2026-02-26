@@ -2,6 +2,7 @@ import AppShell from '@/react-app/components/AppShell';
 import AttributeCard from '@/react-app/components/AttributeCard';
 import QuestItem from '@/react-app/components/QuestItem';
 import LegendChest from '@/react-app/components/LegendChest';
+import StatusBars from '@/react-app/components/StatusBars'; // <-- OLHA QUEM VOLTOU AQUI!
 import { useGame, AttributeKey } from '@/react-app/context/GameContext';
 import { Scroll, Swords } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div className="p-4 space-y-6">
+        
         {/* Title */}
         <div className="text-center">
           <h1 className="font-pixel text-lg text-primary flex items-center justify-center gap-2">
@@ -35,7 +37,10 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mt-1">Conquiste sua vida, um quest por vez</p>
         </div>
 
-        {/* Attributes Grid (O teu 4x3 original) */}
+        {/* BARRAS DE VIDA E XP (A Alma do RPG que faltava!) */}
+        <StatusBars />
+
+        {/* Attributes Grid */}
         <section>
           <h2 className="font-pixel text-xs text-muted-foreground mb-3 flex items-center gap-2">
             <span className="w-8 h-px bg-primary/30" />
@@ -62,7 +67,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Daily Quests (Exatamente como pediste) */}
+        {/* Daily Quests */}
         <section>
           <h2 className="font-pixel text-xs text-muted-foreground mb-3 flex items-center gap-2">
             <span className="w-8 h-px bg-primary/30" />
@@ -76,7 +81,7 @@ export default function DashboardPage() {
               <Scroll className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">Nenhuma quest para hoje</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Vá para <span className="text-primary">Sagas</span> para criar as suas missões
+                Vá para <span className="text-primary">Sagas</span> para criar suas missões
               </p>
             </div>
           ) : (
@@ -106,7 +111,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* A ÚNICA ADIÇÃO: O TEU BAÚ */}
+        {/* O Baú */}
         <LegendChest />
         
       </div>
