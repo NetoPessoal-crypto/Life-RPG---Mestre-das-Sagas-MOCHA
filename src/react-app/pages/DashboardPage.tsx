@@ -1,13 +1,13 @@
 import AppShell from '@/react-app/components/AppShell';
 import QuestItem from '@/react-app/components/QuestItem';
-import LegendChest from '@/react-app/components/LegendChest'; // IMPORTANDO NOSSO BAÚ
+import LegendChest from '@/react-app/components/LegendChest'; 
 import { useGame } from '@/react-app/context/GameContext';
 import { Scroll, Swords } from 'lucide-react';
 
 export default function DashboardPage() {
   const { state } = useGame();
 
-  // Filtro de Quests (Original do seu Mocha)
+  // Filtro de Quests (Original do Mocha)
   const questsWithSaga = state.sagas.flatMap(saga => 
     saga.quests
       .filter(q => {
@@ -73,7 +73,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* CHAMANDO O BAÚ QUE CRIAMOS */}
+        {/* O NOSSO BAÚ LENDÁRIO COM MOSCAS E MOEDAS */}
         <LegendChest />
 
       </div>
