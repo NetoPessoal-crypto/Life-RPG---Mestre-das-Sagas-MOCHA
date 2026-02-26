@@ -2,91 +2,101 @@ import { useState } from 'react';
 import AppShell from '@/react-app/components/AppShell';
 import { useGame } from '@/react-app/context/GameContext';
 import { Button } from '@/react-app/components/ui/button';
-import { MapPin, Compass, Lock, Plus } from 'lucide-react';
+import { MapPin, Camera, Plus, Clock, Image as ImageIcon } from 'lucide-react';
 
 export default function MapPage() {
-  const { state, addMapPoint } = useGame();
+  const { state, addMapPoint, addPhotoToPoint } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [tempPhoto, setTempPhoto] = useState<string>('');
 
-  // Pega a localização do último ponto ou usa o padrão
-  const lastPoint = state.mapPoints[state.mapPoints.length - 1];
-  const lat = lastPoint?.lat || -23.55;
-  const lng = lastPoint?.lng || -46.63;
+  const handleCapture = (e: React.ChangeEvent<HTMLInputElement>, pointId?: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        if (pointId) {
+          addPhotoToPoint(pointId, base64);
+        } else {
+          setTempPhoto(base64);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const handleCheckIn = () => {
-    if (!name.trim()) return;
-    setIsGettingLocation(true);
-    
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        addMapPoint({
-          lat: p.coords.latitude,
-          lng: p.coords.longitude,
-          name: name.trim()
-        });
-        setName(''); setShowForm(false); setIsGettingLocation(false);
-      },
-      () => { alert("Ative o GPS do celular!"); setIsGettingLocation(false); }
-    );
+  const handleNewCheckIn = () => {
+    if (!name || !tempPhoto) return;
+    navigator.geolocation.getCurrentPosition((p) => {
+      addMapPoint({
+        lat: p.coords.latitude,
+        lng: p.coords.longitude,
+        name: name.toUpperCase(),
+        photos: [{ url: tempPhoto, timestamp: new Date().toISOString() }]
+      });
+      setName(''); setTempPhoto(''); setShowForm(false);
+    });
   };
 
   return (
     <AppShell>
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-6 pb-24">
         <div className="flex justify-between items-center">
           <h1 className="font-pixel text-primary text-xs flex items-center gap-2">
-            <Compass className="animate-spin-slow" /> EXPLORAÇÃO
+            <MapPin className="animate-pulse" /> DIÁRIO DE EXPLORAÇÃO
           </h1>
-          <Button onClick={() => setShowForm(!showForm)} size="sm" className="font-pixel text-[10px]">
-            {showForm ? 'FECHAR' : 'NOVO LOCAL'}
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="font-pixel text-[8px]">
+            {showForm ? 'CANCELAR' : 'DESCOBRIR'}
           </Button>
         </div>
 
         {showForm && (
-          <div className="bg-card border-2 border-primary/20 p-4 rounded-lg space-y-3">
+          <div className="bg-card border-2 border-primary/30 p-4 rounded-lg space-y-4">
             <input 
               type="text" value={name} onChange={(e) => setName(e.target.value)}
-              placeholder="Nome da Área (Ex: Masmorra da Academia)"
-              className="w-full bg-black border border-primary/40 p-2 text-white text-xs outline-none"
+              placeholder="NOME DO TERRITÓRIO..."
+              className="w-full bg-black border border-primary/40 p-3 text-white text-xs outline-none"
             />
-            <Button onClick={handleCheckIn} className="w-full font-pixel text-[10px]">
-              {isGettingLocation ? 'MAPEANDO...' : 'REVELAR ÁREA (+10 XP)'}
+            <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 cursor-pointer ${tempPhoto ? 'border-green-500 bg-green-500/10' : 'border-primary/40'}`}>
+              {tempPhoto ? <img src={tempPhoto} className="w-full h-32 object-cover rounded" /> : <><Camera className="w-8 h-8 text-primary mb-2" /><span className="font-pixel text-[8px] text-primary">FOTO OBRIGATÓRIA</span></>}
+              <input type="file" accept="image/*" capture="environment" onChange={(e) => handleCapture(e)} className="hidden" />
+            </label>
+            <Button onClick={handleNewCheckIn} disabled={!name || !tempPhoto} className="w-full font-pixel text-[10px]">
+              RECLAMAR TERRITÓRIO (+20 XP)
             </Button>
           </div>
         )}
 
-        <div className="relative aspect-square border-4 border-double border-primary/30 rounded-lg overflow-hidden">
-          {/* MAPA REAL (OpenStreetMap) */}
-          <iframe
-            width="100%" height="100%"
-            style={{ filter: 'grayscale(1) invert(0.9) contrast(1.2) brightness(0.7)' }}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.003},${lat-0.003},${lng+0.003},${lat+0.003}&layer=mapnik&marker=${lat},${lng}`}
-          ></iframe>
+        <div className="space-y-6">
+          {[...state.mapPoints].reverse().map(point => (
+            <div key={point.id} className="bg-card border-l-4 border-primary rounded-r-lg overflow-hidden shadow-xl">
+              <div className="p-4 flex justify-between items-center">
+                <div>
+                  <h3 className="font-pixel text-[10px] text-white">{point.name}</h3>
+                  <p className="text-[7px] text-muted-foreground uppercase flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {point.photos.length} REGISTROS NESSA ÁREA
+                  </p>
+                </div>
+                <label className="bg-primary/20 p-2 rounded-full cursor-pointer hover:bg-primary/40">
+                  <Plus className="w-4 h-4 text-primary" />
+                  <input type="file" accept="image/*" capture="environment" onChange={(e) => handleCapture(e, point.id)} className="hidden" />
+                </label>
+              </div>
 
-          {/* NÉVOA DE GUERRA DINÂMICA */}
-          <div 
-            className="absolute inset-0 pointer-events-none transition-all duration-700"
-            style={{ 
-              backgroundColor: 'black',
-              // Se tiver pontos, abre um buraco no centro (onde o mapa está focado)
-              maskImage: state.mapPoints.length > 0 
-                ? 'radial-gradient(circle 120px at center, transparent 10%, black 80%)' 
-                : 'none',
-              WebkitMaskImage: state.mapPoints.length > 0 
-                ? 'radial-gradient(circle 120px at center, transparent 10%, black 80%)' 
-                : 'none'
-            }}
-          />
-
-          {state.mapPoints.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 text-center p-6">
-              <Lock className="w-12 h-12 text-primary/20 mb-2" />
-              <p className="font-pixel text-[10px] text-primary/40">ZONA DESCONHECIDA</p>
-              <p className="text-[8px] text-muted-foreground mt-2">FAÇA UM CHECK-IN PARA REVELAR</p>
+              <div className="flex gap-2 p-3 overflow-x-auto bg-black/20">
+                {point.photos.map((photo, i) => (
+                  <div key={i} className="flex-shrink-0 relative">
+                    <img src={photo.url} className="w-28 h-28 object-cover rounded border border-primary/10" />
+                    <div className="absolute bottom-0 inset-x-0 bg-black/80 p-1 text-[6px] font-pixel text-center text-primary leading-tight">
+                      {new Date(photo.timestamp).toLocaleDateString('pt-BR')}<br/>
+                      {new Date(photo.timestamp).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </AppShell>
