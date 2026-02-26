@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 10%;
+    --foreground: 45 20% 90%;
+    --card: 0 0% 13%;
+    --card-foreground: 45 20% 90%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 45 20% 90%;
+    --primary: 45 80% 50%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 25 30% 20%;
+    --secondary-foreground: 45 20% 90%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 45 10% 60%;
+    --accent: 25 60% 35%;
+    --accent-foreground: 45 20% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 20% 90%;
+    --border: 45 40% 25%;
+    --input: 0 0% 18%;
+    --ring: 45 80% 50%;
+    --radius: 0.25rem;
+    
+    /* RPG Colors */
+    --hp: 0 70% 45%;
+    --xp: 40 90% 50%;
+    --gold: 45 80% 50%;
+    --con: 0 60% 50%;
+    --str: 25 70% 45%;
+    --dex: 120 50% 40%;
+    --int: 220 60% 50%;
+    --wis: 280 50% 50%;
+    --expl: 180 50% 40%;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 45 20% 90%;
+    --card: 0 0% 13%;
+    --card-foreground: 45 20% 90%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 45 20% 90%;
+    --primary: 45 80% 50%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 25 30% 20%;
+    --secondary-foreground: 45 20% 90%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 45 10% 60%;
+    --accent: 25 60% 35%;
+    --accent-foreground: 45 20% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 20% 90%;
+    --border: 45 40% 25%;
+    --input: 0 0% 18%;
+    --ring: 45 80% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter Variable", "Inter", system-ui, sans-serif;
+  }
+
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .font-pixel {
+    font-family: 'Press Start 2P', cursive;
+  }
+  
+  .exhausted {
+    filter: grayscale(100%);
+  }
+  
+  .border-ornate {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, hsl(45, 80%, 50%), hsl(25, 60%, 35%), hsl(45, 80%, 50%)) 1;
+  }
+  
+  .glow-gold {
+    box-shadow: 0 0 10px hsla(45, 80%, 50%, 0.3), inset 0 1px 0 hsla(45, 80%, 70%, 0.2);
+  }
+}
