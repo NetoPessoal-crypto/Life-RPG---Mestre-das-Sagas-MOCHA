@@ -4,26 +4,18 @@ import { useGame } from '@/react-app/context/GameContext';
 
 interface AppShellProps {
   children: ReactNode;
-  showStatusBars?: boolean; // Podemos manter ou remover se a Dashboard já tiver as barras
+  showStatusBars?: boolean; 
 }
 
 export default function AppShell({ children }: AppShellProps) {
   const { state, isExhausted } = useGame();
 
-  // Cálculo para o efeito de dano (fica mais forte quanto menos HP você tem)
   const isCritical = state.hp < 30;
 
   return (
-    <div className={`min-h-screen bg-black text-white selection:bg-primary/30`}>
-      {/* TEXTURA DE FUNDO RPG */}
-      <div 
-        className="fixed inset-0 opacity-5 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a853' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* 🔴 CAMADA DE DANO (A TELA AVERMELHADA QUE VOCÊ PEDIU) */}
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+      
+      {/* 🔴 CAMADA DE DANO (MANTIDA, POIS FAZ PARTE DO RPG) */}
       {isCritical && (
         <div className="fixed inset-0 pointer-events-none z-[9999] animate-pulse-fast shadow-[inset_0_0_60px_rgba(220,38,38,0.6)] border-[4px] border-red-600/20" />
       )}
