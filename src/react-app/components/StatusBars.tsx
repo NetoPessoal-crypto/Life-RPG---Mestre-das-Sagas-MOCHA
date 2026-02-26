@@ -32,7 +32,7 @@ export default function StatusBars() {
             {/* HP Bar */}
             <div className="flex items-center gap-2">
               <Heart className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <div className="flex-1 h-4 bg-muted rounded-sm overflow-hidden border border-red-900/50">
+              <div className="flex-1 h-4 bg-muted rounded-sm overflow-hidden border border-red-900/50 relative">
                 <div 
                   className="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-500 relative"
                   style={{ width: `${hpPercent}%` }}
@@ -40,7 +40,7 @@ export default function StatusBars() {
                   <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
                 </div>
               </div>
-              <span className="text-[10px] font-pixel text-red-400 w-12 text-right">
+              <span className="text-[10px] font-pixel text-red-400 min-w-[50px] text-right">
                 {state.hp}/{state.maxHP}
               </span>
             </div>
@@ -48,7 +48,7 @@ export default function StatusBars() {
             {/* XP Bar */}
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-              <div className="flex-1 h-4 bg-muted rounded-sm overflow-hidden border border-yellow-900/50">
+              <div className="flex-1 h-4 bg-muted rounded-sm overflow-hidden border border-yellow-900/50 relative">
                 <div 
                   className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 transition-all duration-500 relative"
                   style={{ width: `${xpPercent}%` }}
@@ -56,7 +56,7 @@ export default function StatusBars() {
                   <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
                 </div>
               </div>
-              <span className="text-[10px] font-pixel text-yellow-400 w-12 text-right">
+              <span className="text-[10px] font-pixel text-yellow-400 min-w-[50px] text-right">
                 {xpForCurrentLevel}/100
               </span>
             </div>
