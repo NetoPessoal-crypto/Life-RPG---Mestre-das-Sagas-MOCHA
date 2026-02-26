@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppShell from '@/react-app/components/AppShell';
 import { useGame } from '@/react-app/context/GameContext';
 import { Button } from '@/react-app/components/ui/button';
-import { MapPin, Plus, Compass, Lock } from 'lucide-react';
+import { MapPin, Compass, Lock, Plus } from 'lucide-react';
 
 export default function MapPage() {
   const { state, addMapPoint } = useGame();
@@ -10,9 +10,10 @@ export default function MapPage() {
   const [name, setName] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Ponto central do mapa (último check-in ou SP como padrão)
-  const centerLat = state.mapPoints[state.mapPoints.length - 1]?.lat || -23.5505;
-  const centerLng = state.mapPoints[state.mapPoints.length - 1]?.lng || -46.6333;
+  // Pega a localização do último ponto ou usa o padrão
+  const lastPoint = state.mapPoints[state.mapPoints.length - 1];
+  const lat = lastPoint?.lat || -23.55;
+  const lng = lastPoint?.lng || -46.63;
 
   const handleCheckIn = () => {
     if (!name.trim()) return;
@@ -23,79 +24,69 @@ export default function MapPage() {
         addMapPoint({
           lat: p.coords.latitude,
           lng: p.coords.longitude,
-          name: name.trim(),
-          discoveredAt: new Date().toISOString()
+          name: name.trim()
         });
         setName(''); setShowForm(false); setIsGettingLocation(false);
       },
-      () => { alert("Ligue o GPS!"); setIsGettingLocation(false); },
-      { enableHighAccuracy: true }
+      () => { alert("Ative o GPS do celular!"); setIsGettingLocation(false); }
     );
   };
-
-  // Gera a string da máscara de névoa baseada nos pontos reais
-  const fogMask = state.mapPoints.length > 0 
-    ? state.mapPoints.map(() => `radial-gradient(circle at center, transparent 30%, black 70%)`).join(',')
-    : 'none';
 
   return (
     <AppShell>
       <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="font-pixel text-sm text-primary flex items-center gap-2">
-            <Compass className="w-5 h-5 animate-pulse" /> EXPLORAÇÃO
+        <div className="flex justify-between items-center">
+          <h1 className="font-pixel text-primary text-xs flex items-center gap-2">
+            <Compass className="animate-spin-slow" /> EXPLORAÇÃO
           </h1>
-          <Button size="sm" onClick={() => setShowForm(!showForm)} className="font-pixel text-[10px] bg-primary/20 border border-primary text-primary">
-            {showForm ? 'CANCELAR' : 'CHECK-IN'}
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="font-pixel text-[10px]">
+            {showForm ? 'FECHAR' : 'NOVO LOCAL'}
           </Button>
         </div>
 
         {showForm && (
-          <div className="bg-card border-2 border-primary/30 rounded-lg p-4 space-y-3 animate-in fade-in zoom-in">
-             <input 
-              type="text" value={name} onChange={(e) => setName(e.target.value)} 
-              placeholder="Nome do Local..." 
-              className="w-full bg-black border border-primary/50 rounded p-2 text-white text-sm outline-none"
+          <div className="bg-card border-2 border-primary/20 p-4 rounded-lg space-y-3">
+            <input 
+              type="text" value={name} onChange={(e) => setName(e.target.value)}
+              placeholder="Nome da Área (Ex: Masmorra da Academia)"
+              className="w-full bg-black border border-primary/40 p-2 text-white text-xs outline-none"
             />
-            <Button onClick={handleCheckIn} disabled={!name.trim() || isGettingLocation} className="w-full font-pixel text-[10px]">
-              {isGettingLocation ? 'BUSCANDO SINAL...' : 'REVELAR ÁREA +10 EXPL'}
+            <Button onClick={handleCheckIn} className="w-full font-pixel text-[10px]">
+              {isGettingLocation ? 'MAPEANDO...' : 'REVELAR ÁREA (+10 XP)'}
             </Button>
           </div>
         )}
 
-        <div className="relative aspect-square rounded-lg border-2 border-primary/20 overflow-hidden shadow-[0_0_20px_rgba(212,168,83,0.1)]">
-          {/* MAPA OSM: Focado no seu ponto atual */}
+        <div className="relative aspect-square border-4 border-double border-primary/30 rounded-lg overflow-hidden">
+          {/* MAPA REAL (OpenStreetMap) */}
           <iframe
-            width="100%" height="100%" frameBorder="0"
-            style={{ filter: 'grayscale(1) invert(0.9) contrast(1.5) brightness(0.8)' }}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${centerLng-0.005},${centerLat-0.005},${centerLng+0.005},${centerLat+0.005}&layer=mapnik&marker=${centerLat},${centerLng}`}
+            width="100%" height="100%"
+            style={{ filter: 'grayscale(1) invert(0.9) contrast(1.2) brightness(0.7)' }}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.003},${lat-0.003},${lng+0.003},${lat+0.003}&layer=mapnik&marker=${lat},${lng}`}
           ></iframe>
 
-          {/* NÉVOA: Agora ela centraliza no mapa */}
-          <div className="absolute inset-0 pointer-events-none transition-all duration-1000" 
-               style={{ 
-                 backgroundColor: 'rgba(0,0,0,0.9)',
-                 maskImage: state.mapPoints.length > 0 ? 'radial-gradient(circle 120px at center, transparent 20%, black 100%)' : 'none',
-                 WebkitMaskImage: state.mapPoints.length > 0 ? 'radial-gradient(circle 120px at center, transparent 20%, black 100%)' : 'none'
-               }}>
-          </div>
-          
+          {/* NÉVOA DE GUERRA DINÂMICA */}
+          <div 
+            className="absolute inset-0 pointer-events-none transition-all duration-700"
+            style={{ 
+              backgroundColor: 'black',
+              // Se tiver pontos, abre um buraco no centro (onde o mapa está focado)
+              maskImage: state.mapPoints.length > 0 
+                ? 'radial-gradient(circle 120px at center, transparent 10%, black 80%)' 
+                : 'none',
+              WebkitMaskImage: state.mapPoints.length > 0 
+                ? 'radial-gradient(circle 120px at center, transparent 10%, black 80%)' 
+                : 'none'
+            }}
+          />
+
           {state.mapPoints.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
-              <Lock className="w-10 h-10 text-primary/40 mb-2" />
-              <p className="font-pixel text-[8px] text-primary/60">TERRA INCÓGNITA</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 text-center p-6">
+              <Lock className="w-12 h-12 text-primary/20 mb-2" />
+              <p className="font-pixel text-[10px] text-primary/40">ZONA DESCONHECIDA</p>
+              <p className="text-[8px] text-muted-foreground mt-2">FAÇA UM CHECK-IN PARA REVELAR</p>
             </div>
           )}
-        </div>
-
-        {/* LISTA DE DESCOBERTAS */}
-        <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-40">
-          {state.mapPoints.map(p => (
-            <div key={p.id} className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/10 rounded">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-xs text-white uppercase font-pixel text-[10px]">{p.name}</span>
-            </div>
-          )).reverse()}
         </div>
       </div>
     </AppShell>
