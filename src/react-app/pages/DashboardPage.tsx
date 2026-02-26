@@ -12,10 +12,9 @@ export default function DashboardPage() {
 
   // Cálculos de Status
   const hpPercent = (state.hp / state.maxHP) * 100;
-  const xpNextLevel = 100; // Sistema simples de 100 XP por nível
-  const xpPercent = (state.totalXP % xpNextLevel);
+  const xpPercent = (state.totalXP % 100);
 
-  // --- LÓGICA DO GRÁFICO DE TEIA (SVG) ---
+  // --- LÓGICA DO GRÁFICO DE TEIA ---
   const stats = [
     { label: 'STR', val: state.attributes.STR, icon: <Sword size={10}/> },
     { label: 'INT', val: state.attributes.INT, icon: <Brain size={10}/> },
@@ -30,7 +29,7 @@ export default function DashboardPage() {
 
   const getCoordinates = (val: number, i: number, total: number) => {
     const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
-    const distance = (val / 100) * radius; // Supondo cap de 100 para o gráfico
+    const distance = (Math.min(val, 100) / 100) * radius; 
     return {
       x: centerX + distance * Math.cos(angle),
       y: centerY + distance * Math.sin(angle)
@@ -51,9 +50,9 @@ export default function DashboardPage() {
     <AppShell>
       <div className="p-4 space-y-6 pb-24">
         
-        {/* HEADER DO HERÓI */}
-        <div className="bg-card border-2 border-primary/20 rounded-lg p-5 flex gap-4 items-center shadow-[0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
-          <div className="w-20 h-20 rounded-full border-4 border-primary/40 bg-black flex items-center justify-center shadow-[0_0_15px_rgba(212,168,83,0.2)]">
+        {/* PERFIL */}
+        <div className="bg-card border-2 border-primary/20 rounded-lg p-5 flex gap-4 items-center shadow-xl relative overflow-hidden">
+          <div className="w-20 h-20 rounded-full border-4 border-primary/40 bg-black flex items-center justify-center shadow-lg">
             <User size={40} className="text-primary opacity-80" />
           </div>
 
@@ -69,86 +68,65 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <h2 className="font-pixel text-white text-[11px] uppercase tracking-tighter">{state.playerName}</h2>
+                  <h2 className="font-pixel text-white text-[11px] uppercase">{state.playerName}</h2>
                   <button onClick={() => setIsEditingName(true)} className="text-primary/40 hover:text-primary"><Edit2 size={12}/></button>
                 </div>
               )}
             </div>
             
             <div className="bg-primary/10 border border-primary/20 px-2 py-0.5 inline-block rounded">
-              <p className="font-pixel text-primary text-[7px] tracking-widest uppercase">
+              <p className="font-pixel text-primary text-[7px] uppercase tracking-widest">
                 {getPlayerTitle(state.level)}
               </p>
             </div>
 
             <div className="space-y-1.5 pt-1">
-              {/* HP BAR */}
               <div className="flex items-center gap-2">
-                <div className="h-3 flex-1 bg-black/50 border border-red-900/50 rounded-sm overflow-hidden p-[1px]">
-                  <div 
-                    className="h-full bg-gradient-to-r from-red-700 to-red-500 shadow-[0_0_8px_rgba(220,38,38,0.4)] transition-all duration-700" 
-                    style={{ width: `${hpPercent}%` }}
-                  />
+                <div className="h-3 flex-1 bg-black border border-red-900/50 rounded-sm overflow-hidden p-[1px]">
+                  <div className="h-full bg-red-600 transition-all duration-700" style={{ width: `${hpPercent}%` }} />
                 </div>
-                <span className="font-pixel text-[7px] text-red-500 w-8">{state.hp} HP</span>
+                <span className="font-pixel text-[7px] text-red-500">{state.hp} HP</span>
               </div>
-
-              {/* XP BAR */}
               <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 bg-black/50 border border-blue-900/50 rounded-sm overflow-hidden p-[1px]">
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-700 to-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all duration-700" 
-                    style={{ width: `${xpPercent}%` }}
-                  />
+                <div className="h-2 flex-1 bg-black border border-blue-900/50 rounded-sm overflow-hidden p-[1px]">
+                  <div className="h-full bg-blue-500 transition-all duration-700" style={{ width: `${xpPercent}%` }} />
                 </div>
-                <span className="font-pixel text-[7px] text-blue-400 w-8">LV {state.level}</span>
+                <span className="font-pixel text-[7px] text-blue-400">LV {state.level}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* CONTROLE DE CAIXA (GOLD) */}
+        {/* GOLD */}
         <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
           <div className="flex justify-between items-end border-b border-primary/10 pb-2">
             <div>
-              <p className="font-pixel text-[7px] text-primary/60 uppercase">Tesouro Acumulado</p>
-              <h3 className="font-pixel text-[15px] text-yellow-500 mt-1">
+              <p className="font-pixel text-[7px] text-primary/60 uppercase">Tesouro</p>
+              <h3 className="font-pixel text-[14px] text-yellow-500">
                 {state.attributes.GOLD.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </h3>
             </div>
-            <Coins className="text-yellow-500/30 mb-1" size={30} />
+            <Coins className="text-yellow-500/30" size={24} />
           </div>
-          
           <div className="flex gap-2">
             <input 
               type="number" value={goldValue} onChange={(e) => setGoldValue(e.target.value)}
-              placeholder="VALOR EM R$..."
-              className="flex-1 bg-black border border-primary/20 p-3 text-white font-pixel text-[9px] outline-none focus:border-primary/50"
+              placeholder="VALOR..."
+              className="flex-1 bg-black border border-primary/20 p-2 text-white font-pixel text-[9px] outline-none"
             />
-            <Button 
-              onClick={() => { addGold(Number(goldValue)); setGoldValue(''); }}
-              className="bg-green-600/10 text-green-500 border border-green-500/30 hover:bg-green-600/30 h-12"
-            >
-              <TrendingUp size={18} />
+            <Button onClick={() => { addGold(Number(goldValue)); setGoldValue(''); }} className="bg-green-600/20 text-green-500 border border-green-500/30 h-10 px-4">
+              <TrendingUp size={16} />
             </Button>
-            <Button 
-              onClick={() => { removeGold(Number(goldValue)); setGoldValue(''); }}
-              className="bg-red-600/10 text-red-500 border border-red-500/30 hover:bg-red-600/30 h-12"
-            >
-              <TrendingDown size={18} />
+            <Button onClick={() => { removeGold(Number(goldValue)); setGoldValue(''); }} className="bg-red-600/20 text-red-500 border border-red-500/30 h-10 px-4">
+              <TrendingDown size={16} />
             </Button>
           </div>
         </div>
 
-        {/* ÁREA DE ATRIBUTOS (TEIA + LISTA) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* GRÁFICO DE TEIA */}
-          <div className="bg-card border-2 border-primary/20 rounded-lg p-4 flex flex-col items-center justify-center relative min-h-[220px]">
-            <p className="absolute top-3 left-3 font-pixel text-[7px] text-primary/40 uppercase">Evolução Radial</p>
-            
-            <svg width="200" height="200" viewBox="0 0 200 200" className="drop-shadow-[0_0_10px_rgba(212,168,83,0.2)]">
-              {/* Teias de Fundo */}
+        {/* ATRIBUTOS */}
+        <div className="grid grid-cols-1 gap-4">
+          <div className="bg-card border-2 border-primary/20 rounded-lg p-4 flex flex-col items-center min-h-[220px]">
+             <svg width="200" height="200" viewBox="0 0 200 200">
               {[0.2, 0.4, 0.6, 0.8, 1].map((tick) => (
                 <polygon
                   key={tick}
@@ -156,27 +134,10 @@ export default function DashboardPage() {
                     const c = getCoordinates(100 * tick, i, stats.length);
                     return `${c.x},${c.y}`;
                   }).join(' ')}
-                  fill="none"
-                  stroke="rgba(212,168,83,0.1)"
-                  strokeWidth="1"
+                  fill="none" stroke="rgba(212,168,83,0.1)" strokeWidth="1"
                 />
               ))}
-              {/* Eixos */}
-              {stats.map((_, i) => {
-                const c = getCoordinates(100, i, stats.length);
-                return (
-                  <line key={i} x1={centerX} y1={centerY} x2={c.x} y2={c.y} stroke="rgba(212,168,83,0.1)" strokeWidth="1" />
-                );
-              })}
-              {/* Área do Herói */}
-              <polygon
-                points={radarPoints}
-                fill="rgba(212,168,83,0.3)"
-                stroke="#d4a853"
-                strokeWidth="2"
-                className="animate-pulse"
-              />
-              {/* Rótulos dos Ícones */}
+              <polygon points={radarPoints} fill="rgba(212,168,83,0.3)" stroke="#d4a853" strokeWidth="2" />
               {stats.map((s, i) => {
                 const c = getCoordinates(120, i, stats.length);
                 return (
@@ -188,25 +149,19 @@ export default function DashboardPage() {
             </svg>
           </div>
 
-          {/* LISTA DE BARRAS DE ATRIBUTO */}
           <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-3">
-            <p className="font-pixel text-[7px] text-primary/40 uppercase mb-2">Poderes Básicos</p>
             {stats.map((s) => (
               <div key={s.label} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="font-pixel text-[8px] text-white/70">{s.label}</span>
-                  <span className="font-pixel text-[8px] text-primary">{s.val}</span>
+                <div className="flex justify-between items-center text-[8px] font-pixel">
+                  <span className="text-white/70">{s.label}</span>
+                  <span className="text-primary">{s.val}</span>
                 </div>
                 <div className="h-1.5 w-full bg-black rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary/60 rounded-full transition-all duration-1000"
-                    style={{ width: `${Math.min(s.val, 100)}%` }}
-                  />
+                  <div className="h-full bg-primary/60" style={{ width: `${Math.min(s.val, 100)}%` }} />
                 </div>
               </div>
             ))}
           </div>
-
         </div>
 
       </div>
