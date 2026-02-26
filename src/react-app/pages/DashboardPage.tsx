@@ -2,112 +2,127 @@ import { useState } from 'react';
 import AppShell from '@/react-app/components/AppShell';
 import { useGame, getPlayerTitle } from '@/react-app/context/GameContext';
 import { Button } from '@/react-app/components/ui/button';
-import { User, Sword, Package, PackageOpen, TrendingUp, TrendingDown, ChevronUp, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Swords, Scroll, Package, PackageOpen, TrendingUp, TrendingDown, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { state, addGold, removeGold } = useGame();
   const [goldValue, setGoldValue] = useState('');
   const [isChestOpen, setIsChestOpen] = useState(false);
 
-  const hpPercent = (state.hp / state.maxHP) * 100;
-  const xpPercent = (state.totalXP % 100);
+  // Filtro de Quests Reais (Lógica do seu Mocha)
+  const questsWithSaga = state.sagas.flatMap(saga => 
+    saga.quests
+      .filter(q => {
+        const todayStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+        return q.day === todayStr || q.day === 'todos';
+      })
+      .map(q => ({ quest: q, sagaId: saga.id }))
+  );
+
+  const completedCount = questsWithSaga.filter(q => q.quest.completed).length;
+  const totalCount = questsWithSaga.length;
 
   return (
     <AppShell>
-      <div className="p-4 space-y-8 pb-32 text-[#d4a853]">
-        
-        {/* HEADER DO RECRUTA ZERO */}
-        <div className="bg-[#1a1a1a] border-4 border-double border-[#d4a853]/40 p-4 shadow-lg rounded-sm">
-          <div className="flex items-center gap-4 border-b border-[#d4a853]/20 pb-4 mb-4">
-             <div className="w-14 h-14 bg-black border-2 border-[#d4a853] flex items-center justify-center">
-                <User size={28} className="text-[#d4a853]" />
-             </div>
-             <div>
-                <h2 className="font-pixel text-[12px] uppercase text-white">{state.playerName}</h2>
-                <p className="font-pixel text-[7px] text-[#d4a853] tracking-tighter">
-                   {getPlayerTitle(state.level)}
-                </p>
-             </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="h-3 w-full bg-black border border-red-900 rounded-sm overflow-hidden">
-               <div className="h-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.5)]" style={{ width: `${hpPercent}%` }} />
-            </div>
-            <div className="h-2 w-full bg-black border border-blue-900 rounded-sm overflow-hidden">
-               <div className="h-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" style={{ width: `${xpPercent}%` }} />
-            </div>
-          </div>
+      <div className="p-4 space-y-6 pb-32">
+        {/* Title (Igual ao Mocha) */}
+        <div className="text-center">
+          <h1 className="font-pixel text-lg text-primary flex items-center justify-center gap-2">
+            <Swords className="w-5 h-5" /> LIFE RPG <Swords className="w-5 h-5 scale-x-[-1]" />
+          </h1>
+          <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">
+            {getPlayerTitle(state.level)}
+          </p>
         </div>
 
-        {/* MISSÕES DO DIA */}
-        <div className="space-y-4">
-          <h3 className="font-pixel text-[9px] flex items-center gap-2 border-l-4 border-[#d4a853] pl-2">
-            <Sword size={14} /> JORNADAS ATIVAS
-          </h3>
-          
-          {state.sagas.length === 0 ? (
-            <div className="bg-black/40 border border-[#d4a853]/10 p-6 text-center italic opacity-40 font-pixel text-[7px]">
-              NENHUMA MISSÃO NO MURAL...
+        {/* Quests de Hoje (Layout Mocha) */}
+        <section>
+          <h2 className="font-pixel text-[10px] text-muted-foreground mb-3 flex items-center gap-2">
+            <span className="w-8 h-px bg-primary/30" />
+            QUESTS DE HOJE
+            <span className="flex-1 h-px bg-primary/30" />
+            <span className="text-primary">{completedCount}/{totalCount}</span>
+          </h2>
+
+          {questsWithSaga.length === 0 ? (
+            <div className="text-center py-8 px-4 border border-dashed border-primary/30 rounded-lg">
+              <Scroll className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-20" />
+              <p className="text-xs text-muted-foreground uppercase">Mural de missões vazio</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {state.sagas.map(s => (
-                <div key={s.id} className="bg-[#121212] border border-[#d4a853]/20 p-3 flex justify-between items-center rounded-sm">
+            <div className="space-y-2">
+              {questsWithSaga.map(({ quest }) => (
+                <div key={quest.id} className="bg-card border border-primary/20 p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 size={16} className="text-[#d4a853]/30" />
-                    <span className="font-pixel text-[8px] text-white uppercase">{s.name}</span>
+                    <CheckCircle2 className={quest.completed ? "text-green-500" : "text-muted-foreground/30"} size={16} />
+                    <span className={`font-pixel text-[8px] uppercase ${quest.completed ? 'line-through opacity-40' : 'text-white'}`}>
+                      {quest.title}
+                    </span>
                   </div>
-                  <span className="font-pixel text-[6px] text-[#d4a853]">EM PROGRESSO</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* BAÚ DE OURO (NO FINAL DA TELA) */}
-        <div className="pt-10">
-          <div className={`bg-[#2a1e12] border-t-4 border-[#5c4026] p-6 transition-all duration-500 ${isChestOpen ? 'rounded-lg shadow-2xl translate-y-0' : 'rounded-t-3xl translate-y-2'}`}>
-            <div className="flex flex-col items-center gap-2">
-              <button 
-                onClick={() => setIsChestOpen(!isChestOpen)}
-                className="hover:scale-110 transition-transform active:scale-95"
-              >
+        {/* Status Rápido (Mocha Style) */}
+        <section className="bg-card border border-primary/20 rounded-lg p-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="font-pixel text-xl text-primary">{state.level}</p>
+              <p className="text-[8px] text-muted-foreground uppercase">NÍVEL</p>
+            </div>
+            <div>
+              <p className="font-pixel text-xl text-yellow-400">{state.totalXP}</p>
+              <p className="text-[8px] text-muted-foreground uppercase">XP TOTAL</p>
+            </div>
+            <div>
+              <p className="font-pixel text-xl text-cyan-400">{state.mapPoints.length}</p>
+              <p className="text-[8px] text-muted-foreground uppercase">LOCAIS</p>
+            </div>
+          </div>
+        </section>
+
+        {/* O BAÚ (COFRE) - Integrado na temática */}
+        <section>
+          <h2 className="font-pixel text-[10px] text-muted-foreground mb-3 flex items-center gap-2">
+            <span className="w-8 h-px bg-primary/30" />
+            TESOURO REAIS
+            <span className="flex-1 h-px bg-primary/30" />
+          </h2>
+          
+          <div className={`bg-card border-2 border-primary/20 p-6 transition-all duration-500 rounded-lg shadow-2xl flex flex-col items-center gap-4`}>
+              <button onClick={() => setIsChestOpen(!isChestOpen)} className="hover:scale-110 active:scale-95 transition-transform">
                 {isChestOpen ? (
-                  <PackageOpen size={48} className="text-yellow-500 animate-in zoom-in duration-300" />
+                  <PackageOpen size={48} className="text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
                 ) : (
-                  <Package size={48} className="text-[#5c4026] hover:text-[#d4a853] transition-colors" />
+                  <Package size={48} className="text-primary/40 hover:text-primary" />
                 )}
               </button>
               
-              <h4 className="font-pixel text-[9px] uppercase tracking-widest text-[#d4a853]">
-                {isChestOpen ? 'BAÚ ABERTO' : 'BAÚ DE TESOURO'}
-              </h4>
-              
-              <p className="font-pixel text-[18px] text-yellow-500 my-2">
+              <p className="font-pixel text-[16px] text-yellow-500">
                 {state.attributes.GOLD.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </p>
 
               {isChestOpen && (
-                <div className="w-full space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="w-full space-y-4 animate-in zoom-in duration-300">
                   <input 
                     type="number" value={goldValue} onChange={(e) => setGoldValue(e.target.value)}
-                    placeholder="DIGITE O VALOR..."
-                    className="w-full bg-black/60 border border-[#d4a853]/20 p-3 text-white font-pixel text-[10px] outline-none rounded-sm text-center"
+                    placeholder="VALOR..."
+                    className="w-full bg-black border border-primary/20 p-2 text-white font-pixel text-[10px] outline-none text-center"
                   />
                   <div className="flex gap-2">
-                    <Button onClick={() => { addGold(Number(goldValue)); setGoldValue(''); }} className="flex-1 bg-green-900/40 border border-green-500/50 hover:bg-green-800 h-12">
-                      <TrendingUp size={18} />
+                    <Button onClick={() => { addGold(Number(goldValue)); setGoldValue(''); }} className="flex-1 bg-green-900/20 border border-green-500 text-green-500 h-10 font-pixel text-[8px]">
+                      DEPOSITAR <TrendingUp size={14} className="ml-1" />
                     </Button>
-                    <Button onClick={() => { removeGold(Number(goldValue)); setGoldValue(''); }} className="flex-1 bg-red-900/40 border border-red-500/50 hover:bg-red-800 h-12">
-                      <TrendingDown size={18} />
+                    <Button onClick={() => { removeGold(Number(goldValue)); setGoldValue(''); }} className="flex-1 bg-red-900/20 border border-red-500 text-red-500 h-10 font-pixel text-[8px]">
+                      RETIRAR <TrendingDown size={14} className="ml-1" />
                     </Button>
                   </div>
                 </div>
               )}
-            </div>
           </div>
-        </div>
+        </section>
       </div>
     </AppShell>
   );
