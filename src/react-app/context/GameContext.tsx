@@ -21,6 +21,7 @@ export interface Saga {
 export interface MapPhoto {
   url: string;
   timestamp: string;
+  description?: string; // NOVO: Descrição opcional
 }
 
 export interface MapPoint {
@@ -72,14 +73,8 @@ const defaultState: GameState = {
   lastCheckDate: new Date().toISOString().split('T')[0]
 };
 
-// --- FUNÇÕES DE LÓGICA ---
-
 function calculateLevel(totalXP: number): number {
   return Math.floor(totalXP / 100) + 1;
-}
-
-function getTodayString(): string {
-  return new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
 }
 
 function parseQuestsFromText(text: string, sagaId: string): Quest[] {
@@ -107,15 +102,13 @@ function parseQuestsFromText(text: string, sagaId: string): Quest[] {
   return quests;
 }
 
-// --- CONTEXTO ---
-
 interface GameContextType {
   state: GameState;
   completeQuest: (questId: string, sagaId: string) => void;
   addSaga: (name: string, rawText: string) => void;
   deleteSaga: (sagaId: string) => void;
   addMapPoint: (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => void;
-  addPhotoToPoint: (pointId: string, photoUrl: string) => void;
+  addPhotoToPoint: (pointId: string, photoUrl: string, description?: string) => void;
   updatePlayerName: (name: string) => void;
   takeDamage: (amount: number) => void;
   heal: (amount: number) => void;
@@ -138,8 +131,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const addMapPoint = (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => {
     setState(prev => ({
       ...prev,
-      totalXP: prev.totalXP + 20,
-      level: calculateLevel(prev.totalXP + 20),
+      totalXP: prev.totalXP + 25,
+      level: calculateLevel(prev.totalXP + 25),
       attributes: { ...prev.attributes, EXPL: prev.attributes.EXPL + 15 },
       mapPoints: [...prev.mapPoints, {
         ...point,
@@ -149,13 +142,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const addPhotoToPoint = (pointId: string, photoUrl: string) => {
+  const addPhotoToPoint = (pointId: string, photoUrl: string, description?: string) => {
     setState(prev => ({
       ...prev,
-      totalXP: prev.totalXP + 10,
+      totalXP: prev.totalXP + 15,
       mapPoints: prev.mapPoints.map(p => 
         p.id === pointId 
-          ? { ...p, photos: [...p.photos, { url: photoUrl, timestamp: new Date().toISOString() }] }
+          ? { ...p, photos: [...p.photos, { url: photoUrl, timestamp: new Date().toISOString(), description }] }
           : p
       )
     }));
