@@ -4,13 +4,20 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 export interface Quest { id: string; title: string; attribute: AttributeKey; completed: boolean; day: string; }
 export interface Saga { id: string; name: string; rawText: string; quests: Quest[]; createdAt: string; }
 export interface MapPhoto { url: string; timestamp: string; description?: string; }
-export interface MapPoint { id: string; lat: number; lng: number; name: string; discoveredAt: string; photos: MapPhoto[]; }
+export interface MapPoint { 
+  id: string; 
+  lat: number; 
+  lng: number; 
+  name: string; 
+  iconType: string; // Guarda o ícone escolhido pelo Neto
+  discoveredAt: string; 
+  photos: MapPhoto[]; 
+}
 export type AttributeKey = 'CON' | 'STR' | 'DEX' | 'INT' | 'WIS' | 'EXPL' | 'GOLD';
 export interface Attributes { CON: number; STR: number; DEX: number; INT: number; WIS: number; EXPL: number; GOLD: number; }
 export interface GameState { playerName: string; level: number; totalXP: number; hp: number; maxHP: number; attributes: Attributes; sagas: Saga[]; mapPoints: MapPoint[]; lastCheckDate: string; }
 
-// CONFIGURAÇÃO: Mudamos a versão para 'v2' para limpar o erro anterior
-const STORAGE_KEY = 'life-rpg-state-v2';
+const STORAGE_KEY = 'life-rpg-state-v2'; // Versão 2 para garantir limpeza de lixo antigo
 
 const defaultState: GameState = {
   playerName: 'Neto',
@@ -51,9 +58,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.error("Memória lotada!", e);
-    }
+    } catch (e) { console.error("Erro ao salvar no LocalStorage", e); }
   }, [state]);
 
   const addMapPoint = (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => {
@@ -100,6 +105,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 export const useGame = () => {
   const context = useContext(GameContext);
-  if (!context) throw new Error('GameContext Error');
+  if (!context) throw new Error('GameContext must be used within GameProvider');
   return context;
 };
