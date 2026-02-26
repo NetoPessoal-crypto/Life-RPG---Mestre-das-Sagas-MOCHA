@@ -13,14 +13,24 @@ export default function DashboardPage() {
   const hpPercent = (state.hp / state.maxHP) * 100;
   const xpPercent = (state.totalXP % 100);
 
-  // Lista simples apenas com os dados
-  const stats = [
-    { label: 'STR', val: state.attributes.STR, id: 0 },
-    { label: 'INT', val: state.attributes.INT, id: 1 },
-    { label: 'EXPL', val: state.attributes.EXPL, id: 2 },
-    { label: 'CON', val: state.attributes.CON, id: 3 },
-    { label: 'WIS', val: state.attributes.WIS, id: 4 },
+  // LISTA APENAS COM TEXTOS E NÚMEROS (Super seguro para o Build)
+  const statsData = [
+    { label: 'STR', val: state.attributes.STR, id: 0, color: 'text-red-500' },
+    { label: 'INT', val: state.attributes.INT, id: 1, color: 'text-blue-500' },
+    { label: 'EXPL', val: state.attributes.EXPL, id: 2, color: 'text-green-500' },
+    { label: 'CON', val: state.attributes.CON, id: 3, color: 'text-pink-500' },
+    { label: 'WIS', val: state.attributes.WIS, id: 4, color: 'text-orange-500' },
   ];
+
+  // Função para desenhar o ícone certo baseado no rótulo
+  const renderIcon = (label: string) => {
+    const size = 12;
+    if (label === 'STR') return <Sword size={size} />;
+    if (label === 'INT') return <Brain size={size} />;
+    if (label === 'EXPL') return <Map size={size} />;
+    if (label === 'CON') return <Heart size={size} />;
+    return <Flame size={size} />;
+  };
 
   const getCoordinates = (val: number, i: number) => {
     const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
@@ -28,24 +38,26 @@ export default function DashboardPage() {
     return { x: 100 + distance * Math.cos(angle), y: 100 + distance * Math.sin(angle) };
   };
 
-  const radarPoints = stats.map((s, i) => {
+  const radarPoints = statsData.map((s, i) => {
     const c = getCoordinates(s.val, i);
     return `${c.x},${c.y}`;
   }).join(' ');
 
   return (
     <AppShell>
-      <div className="p-4 space-y-6 pb-24">
-        {/* PERFIL */}
+      <div className="p-4 space-y-6 pb-24 text-white">
+        
+        {/* PERFIL (TOP) */}
         <div className="bg-card border-2 border-primary/20 rounded-lg p-5 flex gap-4 items-center shadow-xl relative overflow-hidden">
-          <div className="w-20 h-20 rounded-full border-4 border-primary/40 bg-black flex items-center justify-center">
-            <User size={40} className="text-primary opacity-80" />
+          <div className="w-16 h-16 rounded-full border-2 border-primary/40 bg-black flex items-center justify-center">
+            <User size={30} className="text-primary opacity-80" />
           </div>
+
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               {isEditingName ? (
                 <div className="flex gap-1 items-center bg-black border border-primary/30 p-1 rounded">
-                  <input value={newName} onChange={(e) => setNewName(e.target.value)} className="bg-transparent text-white font-pixel text-[10px] w-24 outline-none" />
+                  <input value={newName} onChange={(e) => setNewName(e.target.value)} className="bg-transparent text-white font-pixel text-[10px] w-20 outline-none" />
                   <button onClick={() => { updatePlayerName(newName); setIsEditingName(false); }} className="text-green-500"><Check size={14}/></button>
                 </div>
               ) : (
@@ -55,27 +67,23 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+            
             <div className="bg-primary/10 border border-primary/20 px-2 py-0.5 inline-block rounded">
               <p className="font-pixel text-primary text-[7px] uppercase tracking-widest">{getPlayerTitle(state.level)}</p>
             </div>
+
             <div className="space-y-1.5 pt-1">
-              <div className="flex items-center gap-2">
-                <div className="h-3 flex-1 bg-black border border-red-900/50 rounded-sm overflow-hidden p-[1px]">
-                  <div className="h-full bg-red-600" style={{ width: `${hpPercent}%` }} />
-                </div>
-                <span className="font-pixel text-[7px] text-red-500">{state.hp} HP</span>
+              <div className="h-2.5 w-full bg-black border border-red-900/50 rounded-full overflow-hidden">
+                <div className="h-full bg-red-600 transition-all duration-700" style={{ width: `${hpPercent}%` }} />
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 bg-black border border-blue-900/50 rounded-sm overflow-hidden p-[1px]">
-                  <div className="h-full bg-blue-500" style={{ width: `${xpPercent}%` }} />
-                </div>
-                <span className="font-pixel text-[7px] text-blue-400">LV {state.level}</span>
+              <div className="h-1.5 w-full bg-black border border-blue-900/50 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-700" style={{ width: `${xpPercent}%` }} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* GOLD */}
+        {/* GOLD (CAIXA) */}
         <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
           <div className="flex justify-between items-end border-b border-primary/10 pb-2">
             <div><p className="font-pixel text-[7px] text-primary/60 uppercase">Tesouro</p><h3 className="font-pixel text-[14px] text-yellow-500">{state.attributes.GOLD.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h3></div>
@@ -88,22 +96,37 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ATRIBUTOS */}
+        {/* ATRIBUTOS (TEIA + BARRAS) */}
         <div className="grid grid-cols-1 gap-4">
-          <div className="bg-card border-2 border-primary/20 rounded-lg p-4 flex flex-col items-center min-h-[220px]">
+          <div className="bg-card border-2 border-primary/20 rounded-lg p-4 flex flex-col items-center">
+            {/* GRÁFICO DE TEIA SVG */}
             <svg width="200" height="200" viewBox="0 0 200 200">
               {[0.2, 0.4, 0.6, 0.8, 1].map((tick) => (
-                <polygon key={tick} points={stats.map((_, i) => { const c = getCoordinates(100 * tick, i); return `${c.x},${c.y}`; }).join(' ')} fill="none" stroke="rgba(212,168,83,0.1)" strokeWidth="1" />
+                <polygon key={tick} points={statsData.map((_, i) => { const c = getCoordinates(100 * tick, i); return `${c.x},${c.y}`; }).join(' ')} fill="none" stroke="rgba(212,168,83,0.1)" strokeWidth="1" />
               ))}
               <polygon points={radarPoints} fill="rgba(212,168,83,0.3)" stroke="#d4a853" strokeWidth="2" />
             </svg>
+            
+            {/* LEGENDA DE ÍCONES */}
             <div className="flex gap-4 mt-2">
-              <Sword size={12} className="text-red-500" />
-              <Brain size={12} className="text-blue-500" />
-              <Map size={12} className="text-green-500" />
-              <Heart size={12} className="text-pink-500" />
-              <Flame size={12} className="text-orange-500" />
+              {statsData.map(s => (
+                <div key={s.id} className={s.color}>{renderIcon(s.label)}</div>
+              ))}
             </div>
+          </div>
+
+          <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-3">
+            {statsData.map((s) => (
+              <div key={s.label} className="space-y-1">
+                <div className="flex justify-between items-center text-[8px] font-pixel">
+                  <span className="text-white/70">{s.label}</span>
+                  <span className="text-primary">{s.val}</span>
+                </div>
+                <div className="h-1.5 w-full bg-black rounded-full overflow-hidden">
+                  <div className="h-full bg-primary/60" style={{ width: `${Math.min(s.val, 100)}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
