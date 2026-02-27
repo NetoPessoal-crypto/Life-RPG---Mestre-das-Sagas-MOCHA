@@ -3,33 +3,25 @@ import { useGame } from '@/react-app/context/GameContext';
 import { Button } from '@/react-app/components/ui/button';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-// O NOSSO NOVO BAÚ DESENHADO EM CÓDIGO (PIXEL ART STYLE)
+// BAÚ EM PURO CSS
 const ChestIcon = ({ open, empty }: { open: boolean, empty: boolean }) => (
   <div className="relative w-20 h-16 flex flex-col items-center mt-2">
-    {/* Tampa de Madeira */}
     <div className={`w-20 h-6 bg-[#8b5a2b] border-2 border-black rounded-t-xl origin-bottom transition-transform duration-500 z-20 ${open ? '-translate-y-2 -rotate-12 scale-y-75 brightness-75' : ''}`}>
-      {/* Tiras de ferro da tampa */}
       <div className="absolute top-0 left-3 w-3 h-full bg-[#222] border-x border-black" />
       <div className="absolute top-0 right-3 w-3 h-full bg-[#222] border-x border-black" />
     </div>
     
-    {/* Ouro brilhando por dentro (só aparece se aberto e com dinheiro) */}
     {open && !empty && (
       <div className="absolute top-3 w-16 h-8 bg-yellow-500 rounded-full animate-pulse blur-[4px] z-10" />
     )}
     
-    {/* Escuridão do baú vazio */}
     {open && empty && (
       <div className="absolute top-4 w-16 h-4 bg-black rounded-full z-10 opacity-50" />
     )}
 
-    {/* Base de Madeira */}
     <div className="w-20 h-10 bg-[#5c4026] border-2 border-black border-t-0 relative z-30">
-      {/* Tiras de ferro da base */}
       <div className="absolute top-0 left-3 w-3 h-full bg-[#222] border-x border-black" />
       <div className="absolute top-0 right-3 w-3 h-full bg-[#222] border-x border-black" />
-      
-      {/* Fechadura Dourada */}
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-[#d4a853] border-2 border-black rounded-sm flex items-center justify-center shadow-lg">
          <div className="w-1.5 h-2.5 bg-black rounded-sm" />
       </div>
@@ -77,32 +69,35 @@ export default function LegendChest() {
 
         <div className="flex flex-col items-center gap-6">
           
-          {/* O NOVO BAÚ COM AS ANIMAÇÕES */}
           <div className="relative w-full h-24 flex items-center justify-center">
             
             <ChestIcon open={gold <= 0 || gold > 0} empty={gold <= 0} />
 
-            {/* MOSCAS QUANDO ZERADO */}
+            {/* MOSCAS EM PIXEL ART (QUADRADOS PRETOS) */}
             {gold <= 0 && (
               <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-40">
-                 <span className="absolute -top-2 ml-4 animate-bounce text-[12px]">🪰</span>
-                 <span className="absolute top-2 -ml-8 animate-pulse text-[10px] delay-75">🪰</span>
-                 <span className="absolute top-4 ml-8 animate-bounce text-[8px] delay-150">🪰</span>
+                 <div className="absolute -top-2 ml-4 w-1.5 h-1.5 bg-black animate-bounce" />
+                 <div className="absolute top-2 -ml-8 w-1 h-1 bg-black animate-pulse delay-75" />
+                 <div className="absolute top-4 ml-8 w-1.5 h-1.5 bg-black animate-bounce delay-150" />
               </div>
             )}
 
-            {/* ÍCONES PULANDO QUANDO RICO */}
+            {/* CRISTAIS/MOEDAS EM PIXEL ART (QUADRADOS COLORIDOS) */}
             {gold > 1000 && (
                <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-40">
-                  <div className="absolute -top-4 -ml-12 text-yellow-400 animate-bounce">💰</div>
-                  <div className="absolute -top-2 ml-12 text-cyan-400 animate-bounce delay-150">💎</div>
+                  <div className="absolute -top-4 -ml-12 w-3 h-3 bg-yellow-400 border border-yellow-600 rotate-45 animate-bounce" />
+                  <div className="absolute -top-2 ml-12 w-2 h-2 bg-cyan-400 border border-cyan-600 rotate-45 animate-bounce delay-150" />
                </div>
             )}
 
-            {/* CHUVA DE MOEDAS NO DEPÓSITO */}
+            {/* CHUVA DE MOEDAS (PIXELS DOURADOS) */}
             {isAnimating === 'gain' && (
               <div className="absolute inset-0 flex justify-center pointer-events-none z-50">
-                <div className="coin-rain">🪙 🪙 🪙</div>
+                <div className="coin-rain">
+                  <div className="w-3 h-3 bg-yellow-400 border border-yellow-600" />
+                  <div className="w-3 h-3 bg-yellow-400 border border-yellow-600 mt-2" />
+                  <div className="w-3 h-3 bg-yellow-400 border border-yellow-600" />
+                </div>
               </div>
             )}
           </div>
@@ -114,7 +109,6 @@ export default function LegendChest() {
             {gold <= 0 && <p className="font-pixel text-[8px] text-red-500 mt-2 uppercase tracking-widest">O herói está sem fundos!</p>}
           </div>
 
-          {/* CONTROLES */}
           <div className="w-full flex gap-2">
             <input 
               type="number" 
@@ -145,13 +139,12 @@ export default function LegendChest() {
           animation: drop 1s forwards;
           position: absolute;
           top: -20px;
-          font-size: 24px;
           display: flex;
-          gap: 8px;
+          gap: 12px;
         }
         @keyframes drop {
-          0% { transform: translateY(-10px) scale(1); opacity: 1; }
-          100% { transform: translateY(80px) scale(0.5); opacity: 0; }
+          0% { transform: translateY(-10px); opacity: 1; }
+          100% { transform: translateY(80px); opacity: 0; }
         }
       `}</style>
     </section>
