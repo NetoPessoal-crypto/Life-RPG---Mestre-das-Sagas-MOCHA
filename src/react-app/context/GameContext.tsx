@@ -6,6 +6,9 @@ export interface MapPoint { id: string; lat: number; lng: number; name: string; 
 export type AttributeKey = 'CON' | 'STR' | 'DEX' | 'INT' | 'WIS' | 'EXPL' | 'GOLD';
 export interface Attributes { CON: number; STR: number; DEX: number; INT: number; WIS: number; EXPL: number; GOLD: number; }
 
+// NOVA TIPAGEM DA TAVERNA
+export type TavernSkin = 'sombrio' | 'rustico' | 're4' | 'cigana';
+
 export interface GameState {
   playerName: string;
   level: number;
@@ -15,6 +18,9 @@ export interface GameState {
   attributes: Attributes;
   mapPoints: MapPoint[];
   sagas: any[];
+  // --- NOVAS VARIÁVEIS DA TAVERNA ---
+  tavernSkin: TavernSkin;
+  tavernTokens: number; 
 }
 
 const STORAGE_KEY = 'life-rpg-state-v3';
@@ -36,7 +42,9 @@ const defaultState: GameState = {
   maxHP: 100,
   attributes: { CON: 10, STR: 10, DEX: 10, INT: 10, WIS: 10, EXPL: 10, GOLD: 0 },
   mapPoints: [],
-  sagas: []
+  sagas: [],
+  tavernSkin: 're4', // Skin inicial padrão
+  tavernTokens: 3    // Começando com 3 fichas de brinde para a gente poder testar!
 };
 
 interface GameContextType {
@@ -46,6 +54,10 @@ interface GameContextType {
   removeGold: (amount: number) => void;
   addMapPoint: (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => void;
   addXP: (amount: number) => void;
+  // --- NOVAS FUNÇÕES DA TAVERNA ---
+  setTavernSkin: (skin: TavernSkin) => void;
+  addTavernToken: (amount: number) => void;
+  spendTavernToken: (amount: number) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -53,7 +65,8 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GameState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultState;
+    // Merge para garantir que usuários antigos recebam as novas variáveis da Taverna sem quebrar o save
+    return saved ? { ...defaultState, ...JSON.parse(saved) } : defaultState;
   });
 
   useEffect(() => {
@@ -86,8 +99,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // --- CONTROLES DA TAVERNA ---
+  const setTavernSkin = (skin: TavernSkin) => setState(prev => ({ ...prev, tavernSkin: skin }));
+  
+  const addTavernToken = (amount: number) => setState(prev => ({ 
+    ...prev, tavernTokens: prev.tavernTokens + amount 
+  }));
+  
+  const spendTavernToken = (amount: number) => setState(prev => ({ 
+    ...prev, tavernTokens: Math.max(0, prev.tavernTokens - amount) 
+  }));
+
   return (
-    <GameContext.Provider value={{ state, updatePlayerName, addGold, removeGold, addMapPoint, addXP }}>
+    <GameContext.Provider value={{ 
+      state, updatePlayerName, addGold, removeGold, addMapPoint, addXP,
+      setTavernSkin, addTavernToken, spendTavernToken 
+    }}>
       {children}
     </GameContext.Provider>
   );
