@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router';
-import { LayoutDashboard, ScrollText, Map, User } from 'lucide-react';
+import { LayoutDashboard, ScrollText, Map, User, FlaskConical } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/sagas', icon: ScrollText, label: 'Sagas' },
   { to: '/map', icon: Map, label: 'Mapa' },
+  { to: '/tavern', icon: FlaskConical, label: 'Taverna' },
   { to: '/profile', icon: User, label: 'Perfil' }
 ];
 
