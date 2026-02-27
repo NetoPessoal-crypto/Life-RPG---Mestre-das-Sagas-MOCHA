@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import AppShell from '@/react-app/components/AppShell';
-import { useGame, getPlayerTitle } from '@/react-app/context/GameContext';
-import { User } from 'lucide-react';
+import { useGame, getPlayerTitle, TavernSkin } from '@/react-app/context/GameContext';
+import { User, Settings, X } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { state } = useGame();
+  const { state, setTavernSkin } = useGame();
+  const [showSettings, setShowSettings] = useState(false);
   
   const attrTop = ['CON', 'STR', 'DEX', 'INT'] as const;
   const attrBottom = ['WIS', 'EXPL', 'GOLD'] as const;
@@ -11,11 +13,29 @@ export default function ProfilePage() {
   const hpPercent = (state.hp / state.maxHP) * 100;
   const xpPercent = (state.totalXP % 100);
 
+  const skins: { id: TavernSkin, label: string }[] = [
+    { id: 'sombrio', label: 'Mercado Negro (Sombrio)' },
+    { id: 'rustico', label: 'Taverna Clássica (Rústico)' },
+    { id: 're4', label: 'O Mercador (RE4)' },
+    { id: 'cigana', label: 'Tenda da Cigana' }
+  ];
+
   return (
     <AppShell>
-      <div className="p-4 space-y-8 pb-24">
+      <div className="relative p-4 space-y-8 pb-24">
+        
+        {/* BOTÃO DE CONFIGURAÇÕES NO TOPO */}
+        <div className="flex justify-end mb-[-1rem]">
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+
         {/* Profile Card */}
-        <section className="bg-card border border-primary/20 rounded-lg p-6 flex flex-col items-center gap-4">
+        <section className="bg-card border border-primary/20 rounded-lg p-6 flex flex-col items-center gap-4 relative">
            <div className="w-20 h-20 bg-black border-2 border-primary/40 flex items-center justify-center shadow-lg">
               <User size={40} className="text-primary opacity-60" />
            </div>
@@ -46,7 +66,7 @@ export default function ProfilePage() {
            </div>
         </section>
 
-        {/* Atributos com Barras (Estilo PDF) */}
+        {/* Atributos com Barras */}
         <section>
           <h2 className="font-pixel text-xs text-muted-foreground mb-4 flex items-center gap-2">
             <span className="w-8 h-px bg-primary/30" /> STATUS <span className="flex-1 h-px bg-primary/30" />
@@ -69,6 +89,50 @@ export default function ProfilePage() {
             ))}
           </div>
         </section>
+
+        {/* MODAL DE CONFIGURAÇÕES DO MESTRE */}
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-card border border-primary/50 w-full max-w-[350px] rounded-lg p-6 relative">
+              
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-red-500"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="font-pixel text-primary text-sm mb-6 text-center tracking-widest">
+                OPÇÕES DO MESTRE
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-pixel text-[10px] text-muted-foreground mb-3 flex items-center gap-2">
+                    <span className="w-4 h-px bg-primary/30" /> ESTÉTICA DA TAVERNA
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {skins.map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => setTavernSkin(s.id)}
+                        className={`p-3 font-pixel text-[10px] border text-left transition-all ${
+                          state.tavernSkin === s.id 
+                            ? 'bg-primary text-black border-primary' 
+                            : 'bg-black text-muted-foreground border-primary/20 hover:border-primary/50'
+                        }`}
+                      >
+                        {state.tavernSkin === s.id && "▶ "} {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </div>
     </AppShell>
   );
