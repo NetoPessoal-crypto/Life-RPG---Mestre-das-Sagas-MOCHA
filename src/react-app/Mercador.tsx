@@ -4,14 +4,15 @@ import './Mercador.css';
 interface MercadorProps {
   recompensa: string | null;
   onTrocarFicha: () => void;
+  onFinalizar: () => void; // Avisa a página para salvar e fechar
   podeAbrir: boolean;
 }
 
-const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbrir }) => {
+const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, onFinalizar, podeAbrir }) => {
   const [estagio, setEstagio] = useState<'fundo' | 'respiro' | 'fala' | 'preparando' | 'pausado' | 'abrindo' | 'premio'>('fundo');
   const [frameAtual, setFrameAtual] = useState<number>(1);
 
-  // LOGICA 1: Controle das Fases de Tempo (2 segundos para diálogos/fundo)
+  // LOGICA 1: Controle das Fases de Tempo
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
 
@@ -32,7 +33,7 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
     return () => clearTimeout(timer);
   }, [estagio]);
 
-  // LOGICA 2: Controle da Animação (1 segundo por frame conforme pedido)
+  // LOGICA 2: Controle da Animação (1 segundo por frame)
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
@@ -44,7 +45,7 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
       interval = setInterval(() => {
         setFrameAtual(prev => {
           if (prev < 6) return prev + 1;
-          setEstagio('pausado'); // Trava no 6 e aguarda o clique
+          setEstagio('pausado');
           return 6;
         });
       }, 1000);
@@ -53,9 +54,16 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
     return () => clearInterval(interval);
   }, [estagio]);
 
-  // LOGICA 3: Sequência de Abertura da Maleta (7 ao 15)
+  // LOGICA 3: O Clique (Abrir maleta OU Finalizar encontro)
   const handleClique = () => {
-    if (estagio === 'pausado' && podeAbrir) {
+    // SEGUNDO CLIQUE: Recompensa já está na tela, agora vamos salvar e fechar
+    if (estagio === 'premio') {
+      onFinalizar(); // Avisa a TavernPage para salvar na Saga
+      setEstagio('fundo'); // Reseta o Mercador para o estado inicial (invisível)
+      setFrameAtual(1);
+    } 
+    // PRIMEIRO CLIQUE: Inicia a abertura da maleta
+    else if (estagio === 'pausado' && podeAbrir) {
       onTrocarFicha();
       setEstagio('abrindo');
       
@@ -65,7 +73,6 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
           setFrameAtual(f);
           f++;
         } else {
-          // Só mostra o prêmio 1 segundo APÓS o frame 15 aparecer
           clearInterval(finalAnim);
           setEstagio('premio');
         }
@@ -75,10 +82,9 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
 
   return (
     <div className="taverna-container" onClick={handleClique}>
-      {/* Camada 1: Cenário */}
       <div className="background-layer" />
       
-      {/* Camada 2: Mercador */}
+      {/* O Mercador só aparece se não estiver no estágio fundo */}
       {estagio !== 'fundo' && (
         <img 
           src={`/mercador/frame${frameAtual}.png`} 
@@ -87,7 +93,7 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
         />
       )}
 
-      {/* Camada 3: Sua nova caixa de texto em PNG */}
+      {/* Caixa de recompensa estilizada com o seu PNG */}
       {estagio === 'premio' && (
         <div className="reward-container">
           <img 
