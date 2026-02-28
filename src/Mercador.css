@@ -1,0 +1,46 @@
+/* Container principal - O Palco */
+.taverna-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000; /* Fundo preto caso a imagem demore a carregar */
+}
+
+/* O Cenário de fundo */
+.background-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/mercador/fundo.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+/* O personagem Mercador */
+.mercador-sprite {
+  position: absolute;
+  bottom: 15%; /* Ajusta a altura dele no chão da taverna */
+  left: 50%;
+  transform: translateX(-50%); /* Centraliza ele perfeitamente */
+  height: 75%; /* Ajusta o tamanho dele */
+  z-index: 2;
+  image-rendering: pixelated; /* Deixa o pixel art nítido, sem borrão */
+}
+
+/* A caixa de texto branca do prêmio */
+.reward-box {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 4px solid #222;
+  padding: 30px;
+  box-shadow: 0 0 30px rgba(0, 150, 255, 0.6); /* Brilho azul da maleta */
+  border-radius: 4px;
+}
