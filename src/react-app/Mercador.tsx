@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './Mercador.css';
 
-const Mercador: React.FC = () => {
-  // Estágios da animação
+// Definimos o que o Mercador precisa receber da Taverna
+interface MercadorProps {
+  recompensa: string | null;
+  onTrocarFicha: () => void;
+  podeAbrir: boolean;
+}
+
+const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbrir }) => {
   const [estagio, setEstagio] = useState<'fundo' | 'respiro' | 'fala' | 'preparando' | 'pausado' | 'abrindo' | 'premio'>('fundo');
   const [frameAtual, setFrameAtual] = useState<number>(1);
 
@@ -40,7 +46,9 @@ const Mercador: React.FC = () => {
   }, [estagio, frameAtual]);
 
   const handleClique = () => {
-    if (estagio === 'pausado') {
+    // Só inicia a abertura se o jogador tiver fichas (podeAbrir)
+    if (estagio === 'pausado' && podeAbrir) {
+      onTrocarFicha(); // Avisa a Taverna para gastar a ficha e sortear o prêmio
       setEstagio('abrindo');
       rodarSequenciaFinal();
     }
@@ -70,9 +78,11 @@ const Mercador: React.FC = () => {
         />
       )}
 
+      {/* AGORA O TEXTO É DINÂMICO! */}
       {estagio === 'premio' && (
         <div className="reward-box">
-          <p>VOCÊ GANHOU: 1 HORA DE VIDEOGAME!</p>
+          <p className="reward-title">RECOMPENSA OBTIDA:</p>
+          <p className="reward-text">{recompensa || "ERRO AO GERAR"}</p>
         </div>
       )}
     </div>
