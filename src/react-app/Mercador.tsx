@@ -11,7 +11,7 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
   const [estagio, setEstagio] = useState<'fundo' | 'respiro' | 'fala' | 'preparando' | 'pausado' | 'abrindo' | 'premio'>('fundo');
   const [frameAtual, setFrameAtual] = useState<number>(1);
 
-  // EFEITO 1: Controla a transição automática das fases (TIMING)
+  // Controle de transição das fases
   useEffect(() => {
     if (estagio === 'fundo') {
       const t = setTimeout(() => setEstagio('respiro'), 2000);
@@ -25,16 +25,16 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
       const t = setTimeout(() => { setEstagio('preparando'); setFrameAtual(4); }, 2000);
       return () => clearTimeout(t);
     }
-  }, [estagio]); // SÓ REEXECUTA QUANDO O ESTÁGIO MUDA
+  }, [estagio]);
 
-  // EFEITO 2: Controla a animação dos frames (MOVIMENTO)
+  // Controle da animação dos frames
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
     if (estagio === 'respiro') {
       interval = setInterval(() => {
         setFrameAtual(prev => (prev === 1 ? 2 : 1));
-      }, 400);
+      }, 1000); // 1 segundo entre frames de respiro
     } 
     else if (estagio === 'preparando') {
       interval = setInterval(() => {
@@ -43,14 +43,13 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
           setEstagio('pausado');
           return 6;
         });
-      }, 200);
+      }, 1000); // 1 segundo entre frames 4, 5 e 6
     }
 
     return () => clearInterval(interval);
   }, [estagio]);
 
   const handleClique = () => {
-    // O clique agora só funciona quando ele para no frame 6
     if (estagio === 'pausado' && podeAbrir) {
       onTrocarFicha();
       setEstagio('abrindo');
@@ -63,7 +62,7 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
           setEstagio('premio');
         }
         f++;
-      }, 120);
+      }, 1000); // 1 segundo entre os frames finais (7 ao 15)
     }
   };
 
