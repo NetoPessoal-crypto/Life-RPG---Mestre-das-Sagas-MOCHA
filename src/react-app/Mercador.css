@@ -4,7 +4,8 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #000; /* Fundo preto caso a imagem demore a carregar */
+  background-color: #000;
+  cursor: pointer;
 }
 
 /* O Cenário de fundo */
@@ -14,8 +15,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  /* MUDAMOS DE .jpg PARA .png AQUI: */
-  background-image: url('/mercador/fundo.png'); 
+  background-image: url('/mercador/fundo.png');
   background-size: cover;
   background-position: center;
   z-index: 1;
@@ -24,24 +24,65 @@
 /* O personagem Mercador */
 .mercador-sprite {
   position: absolute;
-  bottom: 15%; /* Ajusta a altura dele no chão da taverna */
+  bottom: 10%; /* Ajustado para ele pisar melhor no cenário */
   left: 50%;
-  transform: translateX(-50%); /* Centraliza ele perfeitamente */
-  height: 75%; /* Ajusta o tamanho dele */
+  transform: translateX(-50%);
+  height: 75%;
   z-index: 2;
-  image-rendering: pixelated; /* Deixa o pixel art nítido, sem borrão */
+  image-rendering: pixelated;
 }
 
-/* A caixa de texto branca do prêmio */
-.reward-box {
+/* Container da sua moldura PNG */
+.reward-container {
   position: absolute;
-  top: 40%;
+  top: 45%; /* Centraliza na altura da maleta */
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 4px solid #222;
-  padding: 30px;
-  box-shadow: 0 0 30px rgba(0, 150, 255, 0.6); /* Brilho azul da maleta */
-  border-radius: 4px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 320px; /* Ajuste se o seu PNG for muito grande ou pequeno */
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* O seu arquivo caixa_recompensa.png */
+.reward-frame {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 15px rgba(0, 150, 255, 0.5)); /* Brilho azul suave */
+}
+
+/* Texto por cima da moldura */
+.reward-text-wrapper {
+  position: absolute;
+  width: 80%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reward-title {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #666;
+  margin: 0;
+  font-weight: bold;
+}
+
+.reward-content {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #222; /* Ajuste para dar contraste com a sua cor de moldura */
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Animação de surgimento da caixa */
+@keyframes bounceIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
