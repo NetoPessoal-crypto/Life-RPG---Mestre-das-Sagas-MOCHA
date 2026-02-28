@@ -1,47 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import './Mercador.css';
 
-const Mercador = () => {
-  // Estágios: 'fundo', 'respiro', 'fala', 'preparando', 'pausado', 'abrindo', 'premio'
-  const [estagio, setEstagio] = useState('fundo');
-  const [frameAtual, setFrameAtual] = useState(1);
+const Mercador: React.FC = () => {
+  // Estágios da animação
+  const [estagio, setEstagio] = useState<'fundo' | 'respiro' | 'fala' | 'preparando' | 'pausado' | 'abrindo' | 'premio'>('fundo');
+  const [frameAtual, setFrameAtual] = useState<number>(1);
 
   useEffect(() => {
-    let timer;
+    let timer: ReturnType<typeof setTimeout>;
 
     if (estagio === 'fundo') {
-      timer = setTimeout(() => setEstagio('respiro'), 2000); // 2s fundo sozinho
+      timer = setTimeout(() => setEstagio('respiro'), 2000);
     } 
-    
     else if (estagio === 'respiro') {
       const interval = setInterval(() => {
         setFrameAtual(prev => (prev === 1 ? 2 : 1));
-      }, 400); // Velocidade do respiro
+      }, 400);
       timer = setTimeout(() => {
         clearInterval(interval);
         setEstagio('fala');
         setFrameAtual(3);
-      }, 2000); // 2s de respiro
+      }, 2000);
     } 
-    
     else if (estagio === 'fala') {
       timer = setTimeout(() => {
         setEstagio('preparando');
         setFrameAtual(4);
-      }, 2000); // 2s no frame 3 (fala)
+      }, 2000);
     } 
-    
     else if (estagio === 'preparando') {
       if (frameAtual < 6) {
         timer = setTimeout(() => setFrameAtual(prev => prev + 1), 200);
       } else {
-        setEstagio('pausado'); // Trava no frame 6
+        setEstagio('pausado');
       }
     }
 
-    return () => {
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [estagio, frameAtual]);
 
   const handleClique = () => {
