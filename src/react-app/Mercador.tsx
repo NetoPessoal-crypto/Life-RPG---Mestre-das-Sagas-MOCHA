@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Mercador.css';
 
-// Definimos o que o Mercador precisa receber da Taverna
 interface MercadorProps {
   recompensa: string | null;
   onTrocarFicha: () => void;
@@ -12,58 +11,60 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
   const [estagio, setEstagio] = useState<'fundo' | 'respiro' | 'fala' | 'preparando' | 'pausado' | 'abrindo' | 'premio'>('fundo');
   const [frameAtual, setFrameAtual] = useState<number>(1);
 
+  // EFEITO 1: Controla a transição automática das fases (TIMING)
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-
     if (estagio === 'fundo') {
-      timer = setTimeout(() => setEstagio('respiro'), 2000);
+      const t = setTimeout(() => setEstagio('respiro'), 2000);
+      return () => clearTimeout(t);
     } 
-    else if (estagio === 'respiro') {
-      const interval = setInterval(() => {
+    if (estagio === 'respiro') {
+      const t = setTimeout(() => { setEstagio('fala'); setFrameAtual(3); }, 2000);
+      return () => clearTimeout(t);
+    }
+    if (estagio === 'fala') {
+      const t = setTimeout(() => { setEstagio('preparando'); setFrameAtual(4); }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [estagio]); // SÓ REEXECUTA QUANDO O ESTÁGIO MUDA
+
+  // EFEITO 2: Controla a animação dos frames (MOVIMENTO)
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
+    if (estagio === 'respiro') {
+      interval = setInterval(() => {
         setFrameAtual(prev => (prev === 1 ? 2 : 1));
       }, 400);
-      timer = setTimeout(() => {
-        clearInterval(interval);
-        setEstagio('fala');
-        setFrameAtual(3);
-      }, 2000);
-    } 
-    else if (estagio === 'fala') {
-      timer = setTimeout(() => {
-        setEstagio('preparando');
-        setFrameAtual(4);
-      }, 2000);
     } 
     else if (estagio === 'preparando') {
-      if (frameAtual < 6) {
-        timer = setTimeout(() => setFrameAtual(prev => prev + 1), 200);
-      } else {
-        setEstagio('pausado');
-      }
+      interval = setInterval(() => {
+        setFrameAtual(prev => {
+          if (prev < 6) return prev + 1;
+          setEstagio('pausado');
+          return 6;
+        });
+      }, 200);
     }
 
-    return () => clearTimeout(timer);
-  }, [estagio, frameAtual]);
+    return () => clearInterval(interval);
+  }, [estagio]);
 
   const handleClique = () => {
-    // Só inicia a abertura se o jogador tiver fichas (podeAbrir)
+    // O clique agora só funciona quando ele para no frame 6
     if (estagio === 'pausado' && podeAbrir) {
-      onTrocarFicha(); // Avisa a Taverna para gastar a ficha e sortear o prêmio
+      onTrocarFicha();
       setEstagio('abrindo');
-      rodarSequenciaFinal();
+      
+      let f = 7;
+      const finalAnim = setInterval(() => {
+        setFrameAtual(f);
+        if (f === 15) {
+          clearInterval(finalAnim);
+          setEstagio('premio');
+        }
+        f++;
+      }, 120);
     }
-  };
-
-  const rodarSequenciaFinal = () => {
-    let f = 7;
-    const interval = setInterval(() => {
-      setFrameAtual(f);
-      if (f === 15) {
-        clearInterval(interval);
-        setEstagio('premio');
-      }
-      f++;
-    }, 120);
   };
 
   return (
@@ -78,11 +79,10 @@ const Mercador: React.FC<MercadorProps> = ({ recompensa, onTrocarFicha, podeAbri
         />
       )}
 
-      {/* AGORA O TEXTO É DINÂMICO! */}
       {estagio === 'premio' && (
         <div className="reward-box">
           <p className="reward-title">RECOMPENSA OBTIDA:</p>
-          <p className="reward-text">{recompensa || "ERRO AO GERAR"}</p>
+          <p className="reward-text">{recompensa || "GERANDO..."}</p>
         </div>
       )}
     </div>
