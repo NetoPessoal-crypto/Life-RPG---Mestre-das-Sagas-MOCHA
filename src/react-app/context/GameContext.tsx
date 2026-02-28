@@ -3,10 +3,10 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 // --- INTERFACES ---
 export interface MapPhoto { url: string; timestamp: string; description?: string; }
 export interface MapPoint { id: string; lat: number; lng: number; name: string; iconType: string; discoveredAt: string; photos: MapPhoto[]; }
+export interface SagaEntry { id: string; title: string; timestamp: string; type: 'reward' | 'quest' | 'discovery'; } // Tipagem para as Sagas
 export type AttributeKey = 'CON' | 'STR' | 'DEX' | 'INT' | 'WIS' | 'EXPL' | 'GOLD';
 export interface Attributes { CON: number; STR: number; DEX: number; INT: number; WIS: number; EXPL: number; GOLD: number; }
 
-// NOVA TIPAGEM DA TAVERNA
 export type TavernSkin = 'sombrio' | 'rustico' | 're4' | 'cigana';
 
 export interface GameState {
@@ -17,15 +17,13 @@ export interface GameState {
   maxHP: number;
   attributes: Attributes;
   mapPoints: MapPoint[];
-  sagas: any[];
-  // --- NOVAS VARIÁVEIS DA TAVERNA ---
+  sagas: SagaEntry[];
   tavernSkin: TavernSkin;
   tavernTokens: number; 
 }
 
 const STORAGE_KEY = 'life-rpg-state-v3';
 
-// LÓGICA DE TÍTULOS POR NÍVEL
 export const getPlayerTitle = (level: number) => {
   if (level <= 5) return "RECRUTA ZERO";
   if (level <= 10) return "EXPLORADOR VAGANTE";
@@ -43,8 +41,8 @@ const defaultState: GameState = {
   attributes: { CON: 10, STR: 10, DEX: 10, INT: 10, WIS: 10, EXPL: 10, GOLD: 0 },
   mapPoints: [],
   sagas: [],
-  tavernSkin: 're4', // Skin inicial padrão
-  tavernTokens: 3    // Começando com 3 fichas de brinde para a gente poder testar!
+  tavernSkin: 're4',
+  tavernTokens: 3    
 };
 
 interface GameContextType {
@@ -54,10 +52,10 @@ interface GameContextType {
   removeGold: (amount: number) => void;
   addMapPoint: (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => void;
   addXP: (amount: number) => void;
-  // --- NOVAS FUNÇÕES DA TAVERNA ---
   setTavernSkin: (skin: TavernSkin) => void;
   addTavernToken: (amount: number) => void;
   spendTavernToken: (amount: number) => void;
+  addSaga: (title: string) => void; // <--- NOVA FUNÇÃO
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -65,7 +63,6 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GameState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    // Merge para garantir que usuários antigos recebam as novas variáveis da Taverna sem quebrar o save
     return saved ? { ...defaultState, ...JSON.parse(saved) } : defaultState;
   });
 
@@ -89,6 +86,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return { ...prev, totalXP: newXP, level: newLevel };
   });
 
+  const addSaga = (title: string) => {
+    setState(prev => ({
+      ...prev,
+      sagas: [
+        { id: `saga-${Date.now()}`, title, timestamp: new Date().toISOString(), type: 'reward' },
+        ...prev.sagas
+      ]
+    }));
+  };
+
   const addMapPoint = (point: Omit<MapPoint, 'id' | 'discoveredAt'>) => {
     setState(prev => ({
       ...prev,
@@ -99,21 +106,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  // --- CONTROLES DA TAVERNA ---
   const setTavernSkin = (skin: TavernSkin) => setState(prev => ({ ...prev, tavernSkin: skin }));
-  
-  const addTavernToken = (amount: number) => setState(prev => ({ 
-    ...prev, tavernTokens: prev.tavernTokens + amount 
-  }));
-  
-  const spendTavernToken = (amount: number) => setState(prev => ({ 
-    ...prev, tavernTokens: Math.max(0, prev.tavernTokens - amount) 
-  }));
+  const addTavernToken = (amount: number) => setState(prev => ({ ...prev, tavernTokens: prev.tavernTokens + amount }));
+  const spendTavernToken = (amount: number) => setState(prev => ({ ...prev, tavernTokens: Math.max(0, prev.tavernTokens - amount) }));
 
   return (
     <GameContext.Provider value={{ 
       state, updatePlayerName, addGold, removeGold, addMapPoint, addXP,
-      setTavernSkin, addTavernToken, spendTavernToken 
+      setTavernSkin, addTavernToken, spendTavernToken, addSaga 
     }}>
       {children}
     </GameContext.Provider>
